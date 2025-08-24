@@ -1,0 +1,2 @@
+date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
+2025-08-30,Giro_DE1234,STADTWERKE FRANKFURT,-120.00,EUR,Strom,strom,,csv
