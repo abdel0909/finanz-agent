@@ -1,3 +1,4 @@
 date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-08-24,Giro_DE1234,ALDI,-0.00,EUR,Lebensmittel,supermarkt,Wocheneinkauf,,csv
 2025-08-26,Giro_DE1234,LIDL,-0.00,EUR,Lebensmittel,supermarkt,Snacks,,csv
+2025-09-02,Giro_DE1234,ALDI,-25.00,EUR,Lebensmittel,supermarkt,Wocheneinkauf,,csv
