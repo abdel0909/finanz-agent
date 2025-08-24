@@ -1,1 +1,13 @@
-
+pattern,category,tags
+ALDI|LIDL|REWE|EDEKA,Lebensmittel,supermarkt
+DM|ROSSMANN,Drogerie & Haushalt,drogerie
+SHELL|ARAL|Q1|TANK,ÖPNV & Tanken,tanken
+BVG|RMV|DB|VRR|ÖPNV|TICKET,ÖPNV & Tanken,ticket
+MIETE|NEBENKOSTEN|VERMIETER,Miete & Nebenkosten,wohnen
+TELEKOM|VODAFONE|O2|1&1,Mobilfunk & Internet,telefon
+AOK|HUK|ALLIANZ|VERSICH,Versicherungen,versicherung
+APOTHEKE|DOCMORRIS|ILAPO|MEDCONNECT24,Gesundheit & Medikamente,gesundheit
+ZALANDO|H&M|PRIMARK|C&A,Bekleidung,kleidung
+RYANAIR|LUFTHANSA|BOOKING|HOTEL,Freizeit & Reisen,reise
+BAUSPAR|SPARPLAN,Sparen & Bauspar,sparen
+OANDA|ETORO|BINANCE,Einnahmen: Trading,trading
