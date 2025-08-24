@@ -1,1 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pkl
+*.egg-info/
+.env
+.venv/
+venv/
+.envrc
 
+# OS
+.DS_Store
+Thumbs.db
+
+# Data / Reports (keep structure, ignore generated)
+data/inbox/*
+data/processed/*
+reports/*
+!data/.gitkeep
+!reports/.gitkeep
+
+# Optional: Excel aus dem Repo halten (auskommentiert lassen, wenn du es versionieren willst)
+# Budget.xlsx
