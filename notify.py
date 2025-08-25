@@ -149,20 +149,16 @@ def render_html(rep: dict) -> str:
     <hr />{imgs}
     """
 
-def send_email(subject: str, html: str, attachments: list[Path]):
-    if not (SMTP_USER and SMTP_PASS and EMAIL_FROM and EMAIL_TO):
-        raise RuntimeError("SMTP/Gmail Umgebungsvariablen fehlen.")
-    msg = MIMEMultipart("related")
-    msg["Subject"]=subject; msg["From"]=EMAIL_FROM; msg["To"]=",".join(EMAIL_TO)
-    alt = MIMEMultipart("alternative"); alt.attach(MIMEText(html,"html","utf-8")); msg.attach(alt)
-    for p in attachments:
-        with open(p,"rb") as f:
-            part = MIMEApplication(f.read(), Name=p.name)
-        part["Content-Disposition"] = f'attachment; filename="{p.name}"'
-        msg.attach(part)
-    ctx = ssl.create_default_context()
-    with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as s:
-        s.starttls(context=ctx); s.login(SMTP_USER, SMTP_PASS); s.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
+# Debug: Body speichern, damit du sehen kannst, was verschickt wird
+(REPORT_DIR / "debug").mkdir(parents=True, exist_ok=True)
+debug_html = REPORT_DIR / "debug" / "last_mail.html"
+debug_txt  = REPORT_DIR / "debug" / "last_mail.txt"
+debug_html.write_text(html, encoding="utf-8")
+debug_txt.write_text(re.sub(r"<[^>]+>", "", html), encoding="utf-8")
+
+print("[DEBUG] Subject:", subject)
+print("[DEBUG] HTML length:", len(html))
+print("[DEBUG] Attachments:", [a.name for a in attachments])
 
 def maybe_send_daily_at_20() -> bool:
     return datetime.now(TZ).hour == 20
