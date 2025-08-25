@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+import os
+import pandas as pd
+import matplotlib.pyplot as plt
+from finanzen_agent import create_workbook_if_missing
 from __future__ import annotations
 import os, io, json, smtplib, ssl, base64
 from email.mime.multipart import MIMEMultipart
@@ -251,6 +254,11 @@ def maybe_send_daily_at_20() -> bool:
     return now.hour == 20
 
 def main():
+    
+    # Safety: Stelle sicher, dass Budget.xlsx existiert
+    if not os.path.exists("Budget.xlsx"):
+        print("[INFO] Budget.xlsx fehlt oder ist beschädigt → neu anlegen …")
+        create_workbook_if_missing()
     import argparse as _ap
     p = _ap.ArgumentParser(description="Berichtsversand per Mail")
     p.add_argument("period", choices=["daily","monthly","quarterly","yearly","auto"], help="Welche Periode?")
