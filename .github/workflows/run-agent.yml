@@ -1,41 +1,55 @@
 
-name: Run Finanz-Agent
+name: Run Finanz-Agent & Send Reports
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 6 * * *"  # täglich 06:00 UTC
-
-permissions:
-  contents: write
+    # TÄGLICH um 20:00 Europa/Berlin (Sommer/Winter abgesichert)
+    - cron: "0 18 * * *"   # 20:00 CEST
+    - cron: "0 19 * * *"   # 20:00 CET
+    # MONATLICH am 1. (20:05 lokal)
+    - cron: "5 18 1 * *"
+    - cron: "5 19 1 * *"
+    # VIERTELJÄHRLICH am 1. Jan/Apr/Jul/Okt (20:10 lokal)
+    - cron: "10 18 1 1,4,7,10 *"
+    - cron: "10 19 1 1,4,7,10 *"
+    # JÄHRLICH am 1. Jan (20:15 lokal)
+    - cron: "15 18 1 1 *"
+    - cron: "15 19 1 1 *"
 
 jobs:
   run:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Install deps
         run: |
-          python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run agent
-        run: python finanzen_agent.py
+      - name: Process Inbox (update Excel & reports)
+        run: |
+          python finanzen_agent.py
 
-      - name: Commit updated reports & workbook
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore: update reports & workbook"
-          commit_user_name: "finanz-agent-bot"
-          commit_user_email: "actions@github.com"
-          file_pattern: |
-            reports/**
-            Budget.xlsx
-            data/processed/**
+      - name: Send scheduled reports via email (auto)
+        env:
+          LOCAL_TZ: Europe/Berlin
+          # === SMTP (einfach) ===
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO:   ${{ secrets.EMAIL_TO }}
+          # === oder Microsoft Graph (optional) ===
+          AZURE_TENANT_ID:   ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID:   ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          GRAPH_SENDER:      ${{ secrets.GRAPH_SENDER }}
+        run: |
+          # auto = Tagesreport (nur um 20:00 lokal), sowie Monat/Quartal/Jahr am 1.
+          python notify.py auto --send
