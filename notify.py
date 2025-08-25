@@ -255,7 +255,7 @@ def maybe_send_daily_at_20() -> bool:
 
 def main():
     
-    # Safety: Stelle sicher, dass Budget.xlsx existiert
+       # Safety: Stelle sicher, dass Budget.xlsx existiert
     if not os.path.exists("Budget.xlsx"):
         print("[INFO] Budget.xlsx fehlt oder ist beschädigt → neu anlegen …")
         create_workbook_if_missing()
