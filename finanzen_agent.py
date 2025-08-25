@@ -8,7 +8,7 @@ from pathlib import Path
 import shutil
 import pandas as pd
 
-# Pfade
+# ───────── Pfade
 BASE = Path(__file__).parent.resolve()
 DATA_DIR = BASE / "data"
 INBOX_DIR = DATA_DIR / "inbox"
@@ -17,15 +17,14 @@ REPORT_DIR = BASE / "reports"
 RULES_CSV = BASE / "rules.csv"
 WORKBOOK = BASE / "Budget.xlsx"
 
-# Transaktionsschema
+# ───────── Schema
 TX_COLS = ["date","account_id","payee","amount_eur","currency",
            "category","tags","note","external_id","source"]
 
-# Defaults für ein frisches Workbook
 DEFAULT_ACCOUNTS = pd.DataFrame({
     "account_id": ["Giro_DE1234","Kreditkarte_Visa","Bar","Trading_OANDA"],
     "bank_name":  ["Deutsche Bank","Visa","—","OANDA"],
-    "owner":      ["" for _ in range(4)],
+    "owner":      ["","","",""],
     "note":       ["Hauptkonto","Online-Zahlungen","Bargeld","Trading-Konto"]
 })
 DEFAULT_CATEGORIES = pd.DataFrame({
@@ -39,7 +38,7 @@ DEFAULT_CATEGORIES = pd.DataFrame({
     "budget_monthly_eur": [900,120,60,90,450,60,120,80,120,60,100,100,0,0,0,200,150,40,50,20,10,15]
 })
 
-# ───────────────────────── helpers ─────────────────────────
+# ───────── Helpers
 def ensure_dirs():
     INBOX_DIR.mkdir(parents=True, exist_ok=True)
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
@@ -48,6 +47,7 @@ def ensure_dirs():
 def create_workbook_if_missing():
     if WORKBOOK.exists():
         return
+    print(f"[INIT] Erzeuge {WORKBOOK.name} …")
     transactions = pd.DataFrame(columns=TX_COLS)
     monthly = pd.DataFrame(columns=["year_month","category","sum_eur"])
     balances = pd.DataFrame(columns=["account_id","balance_eur","last_tx_date"])
@@ -87,6 +87,7 @@ def _read_csv_robust(path: Path) -> pd.DataFrame:
         return pd.read_csv(path)
 
 def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
+    # Map typische Bankspalten -> Standard
     colmap = {}
     for c in df.columns:
         cl = str(c).strip().lower()
@@ -112,15 +113,18 @@ def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
             colmap[c] = "tags"
     df = df.rename(columns=colmap)
 
+    # fehlende Spalten ergänzen
     for c in TX_COLS:
         if c not in df.columns:
             df[c] = "" if c != "amount_eur" else 0.0
 
+    # Typen säubern
     df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.date
     df["amount_eur"] = pd.to_numeric(df["amount_eur"], errors="coerce").fillna(0.0)
     for c in ["payee","category","tags","note","external_id","account_id","currency","source"]:
         df[c] = df[c].astype(str)
 
+    # Defaults
     if (df["currency"].str.strip() == "").all():
         df["currency"] = "EUR"
     if (df["account_id"].str.strip() == "").all():
@@ -164,17 +168,29 @@ def apply_rules(df: pd.DataFrame, rules: pd.DataFrame) -> pd.DataFrame:
     df.loc[df["category"].astype(str).str.strip() == "", "category"] = "Sonstiges"
     return df
 
+# ───────── Bulletproof Dedupe
 def dedupe(transactions: pd.DataFrame) -> pd.DataFrame:
+    """Duplikate sicher entfernen – alle Schlüsselspalten strikt zu Strings."""
     t = transactions.copy()
-    # 100% String-sicher
-    t["date"] = pd.to_datetime(t["date"], errors="coerce").dt.strftime("%Y-%m-%d").fillna("")
-    t["account_id"] = t["account_id"].astype(str).fillna("")
-    t["payee"] = t["payee"].astype(str).fillna("")
-    t["external_id"] = t["external_id"].astype(str).fillna("")
+
+    # Alle Schlüsselspalten sicher belegen
+    if "date" not in t: t["date"] = ""
+    if "account_id" not in t: t["account_id"] = ""
+    if "payee" not in t: t["payee"] = ""
+    if "external_id" not in t: t["external_id"] = ""
+    if "amount_eur" not in t: t["amount_eur"] = 0.0
+
+    # Harte Typ-Konvertierung
+    t["date"] = pd.to_datetime(t["date"], errors="coerce").dt.strftime("%Y-%m-%d").fillna("").astype(str)
+    t["account_id"] = t["account_id"].fillna("").astype(str)
+    t["payee"] = t["payee"].fillna("").astype(str)
+    t["external_id"] = t["external_id"].fillna("").astype(str)
     t["amount_eur"] = pd.to_numeric(t["amount_eur"], errors="coerce").fillna(0.0).round(2).astype(str)
 
+    # Schlüssel bilden
     t["__k"] = t["date"] + "|" + t["account_id"] + "|" + t["amount_eur"] + "|" + t["payee"] + "|" + t["external_id"]
-    return t.drop_duplicates(subset="__k").drop(columns="__k")
+    t = t.drop_duplicates(subset="__k").drop(columns="__k")
+    return t
 
 def compute_balances(transactions: pd.DataFrame) -> pd.DataFrame:
     tx = transactions.copy()
@@ -183,7 +199,7 @@ def compute_balances(transactions: pd.DataFrame) -> pd.DataFrame:
     bal = tx.groupby("account_id", as_index=False)["amount_eur"].sum().rename(columns={"amount_eur":"balance_eur"})
     last = tx.groupby("account_id", as_index=False)["date"].max().rename(columns={"date":"last_tx_date"})
     bal = bal.merge(last, on="account_id", how="left")
-    total = pd.DataFrame([{"account_id": "✔ Gesamt", "balance_eur": bal["balance_eur"].sum(), "last_tx_date": ""}])
+    total = pd.DataFrame([{"account_id":"✔ Gesamt","balance_eur":bal["balance_eur"].sum(),"last_tx_date":""}])
     return pd.concat([bal, total], ignore_index=True)
 
 def write_workbook(transactions: pd.DataFrame):
@@ -221,25 +237,29 @@ def move_processed(files):
             target = PROCESSED_DIR / f"{f.stem}_{stamp}{f.suffix}"
         shutil.move(str(f), str(target))
 
-# ───────────────────────── main ─────────────────────────
+# ───────── Main
 def run_agent(dry_run: bool = False):
     ensure_dirs()
-    new, files = read_new_csv_files(INBOX_DIR)
-    if new.empty:
+    # CSVs einlesen
+    new_df, files = read_new_csv_files(INBOX_DIR)
+    if new_df.empty:
         print("[INFO] Keine neuen CSVs in data/inbox/")
         return
 
+    # Bestand + Regeln
     existing = load_existing_transactions()
     rules = load_rules()
-    new = apply_rules(new, rules)
+    new_df = apply_rules(new_df, rules)
 
-    all_tx = pd.concat([existing, new], ignore_index=True)
+    # Merge + Dedupe
+    all_tx = pd.concat([existing, new_df], ignore_index=True)
     all_tx = dedupe(all_tx)
 
     if dry_run:
-        print(f"[DRY] Neue Zeilen: {len(new)} | Gesamt nach Merge/Dedupe: {len(all_tx)}")
+        print(f"[DRY] Neue Zeilen: {len(new_df)} | Gesamt nach Merge/Dedupe: {len(all_tx)}")
         return
 
+    # Schreiben + Reports + Ablage
     write_workbook(all_tx)
     generate_reports(all_tx)
     move_processed(files)
@@ -249,7 +269,6 @@ def main():
     p = argparse.ArgumentParser(description="Finanzen-Agent")
     p.add_argument("--dry-run", action="store_true", help="nur lesen/prüfen, nichts schreiben/verschieben")
     args = p.parse_args()
-    # Falls Excel komplett fehlt, bei erstem echten Lauf automatisch anlegen
     if not WORKBOOK.exists():
         create_workbook_if_missing()
     run_agent(dry_run=args.dry_run)
