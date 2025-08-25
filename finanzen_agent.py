@@ -170,25 +170,28 @@ def apply_rules(df: pd.DataFrame, rules: pd.DataFrame) -> pd.DataFrame:
 
 # ───────── Bulletproof Dedupe
 def dedupe(transactions: pd.DataFrame) -> pd.DataFrame:
-    """Duplikate sicher entfernen – alle Schlüsselspalten strikt zu Strings."""
+    """Robuste Duplikat-Erkennung: alle relevanten Spalten knallhart zu Strings wandeln."""
     t = transactions.copy()
 
-    # Alle Schlüsselspalten sicher belegen
-    if "date" not in t: t["date"] = ""
-    if "account_id" not in t: t["account_id"] = ""
-    if "payee" not in t: t["payee"] = ""
-    if "external_id" not in t: t["external_id"] = ""
-    if "amount_eur" not in t: t["amount_eur"] = 0.0
+    for c in ["date", "account_id", "payee", "external_id", "amount_eur"]:
+        if c not in t.columns:
+            t[c] = ""
+        if c == "amount_eur":
+            t[c] = pd.to_numeric(t[c], errors="coerce").fillna(0.0).round(2).astype(str)
+        elif c == "date":
+            t[c] = pd.to_datetime(t[c], errors="coerce").dt.strftime("%Y-%m-%d").fillna("").astype(str)
+        else:
+            t[c] = t[c].fillna("").astype(str)
 
-    # Harte Typ-Konvertierung
-    t["date"] = pd.to_datetime(t["date"], errors="coerce").dt.strftime("%Y-%m-%d").fillna("").astype(str)
-    t["account_id"] = t["account_id"].fillna("").astype(str)
-    t["payee"] = t["payee"].fillna("").astype(str)
-    t["external_id"] = t["external_id"].fillna("").astype(str)
-    t["amount_eur"] = pd.to_numeric(t["amount_eur"], errors="coerce").fillna(0.0).round(2).astype(str)
+    # Schlüssel aus Strings
+    t["__k"] = (
+        t["date"] + "|" +
+        t["account_id"] + "|" +
+        t["amount_eur"] + "|" +
+        t["payee"] + "|" +
+        t["external_id"]
+    )
 
-    # Schlüssel bilden
-    t["__k"] = t["date"] + "|" + t["account_id"] + "|" + t["amount_eur"] + "|" + t["payee"] + "|" + t["external_id"]
     t = t.drop_duplicates(subset="__k").drop(columns="__k")
     return t
 
@@ -240,18 +243,15 @@ def move_processed(files):
 # ───────── Main
 def run_agent(dry_run: bool = False):
     ensure_dirs()
-    # CSVs einlesen
     new_df, files = read_new_csv_files(INBOX_DIR)
     if new_df.empty:
         print("[INFO] Keine neuen CSVs in data/inbox/")
         return
 
-    # Bestand + Regeln
     existing = load_existing_transactions()
     rules = load_rules()
     new_df = apply_rules(new_df, rules)
 
-    # Merge + Dedupe
     all_tx = pd.concat([existing, new_df], ignore_index=True)
     all_tx = dedupe(all_tx)
 
@@ -259,7 +259,6 @@ def run_agent(dry_run: bool = False):
         print(f"[DRY] Neue Zeilen: {len(new_df)} | Gesamt nach Merge/Dedupe: {len(all_tx)}")
         return
 
-    # Schreiben + Reports + Ablage
     write_workbook(all_tx)
     generate_reports(all_tx)
     move_processed(files)
