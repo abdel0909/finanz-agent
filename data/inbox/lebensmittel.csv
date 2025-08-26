@@ -5,4 +5,4 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-08-25,Giro_DE1234,Kiosk,-1.80,EUR,Lebensmittel,supermarkt,"Fanta",,csv
 2025-08-26,Giro_DE1234,LIDL,-11.69,EUR,Lebensmittel,Supermarkt,"Banana , Eisbergsalat , Tomaten ,Broccoli , Reis ,Mayonnaise ,Spargel ,Papiertragetasche ",,csv
 2025-08-26,Giro_DE1234,LIDL,-24.59,EUR,Lebensmittel,Supermarkt ,"Steinofenpizza , Zaziki ,Kartofelsalat ,Eier ,2x Nudeln ,Cornichon scharf, ,Thunfisch , Rosenbrötchen , Berliner 10er , Backpapier , Putzschwamm",,csv
-2025-08-26,Giro_DE1234,Philipps,-17.62EUR,Lebensmittel,supermarkt,"Frischhaltedosen",,csv
+2025-08-26,Giro_DE1234,Philipps,-17.62,EUR,Lebensmittel,supermarkt,"Frischhaltedosen",,csv
