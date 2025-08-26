@@ -25,10 +25,10 @@ TZ = ZoneInfo(os.getenv("LOCAL_TZ", "Europe/Berlin"))
 
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
 SMTP_PORT   = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER   = os.getenv("SMTP_USER", "")
+SMTP_USER   = os.getenv("zwqdwuyxdzydtaqu", "bouardjaa@gmail.com")
 SMTP_PASS   = os.getenv("SMTP_PASS", "")
-EMAIL_FROM  = os.getenv("EMAIL_FROM", SMTP_USER)
-EMAIL_TO    = [a.strip() for a in os.getenv("EMAIL_TO", SMTP_USER).split(",") if a.strip()]
+EMAIL_FROM  = os.getenv("bouardjaa@gmail.com", SMTP_USER)
+EMAIL_TO    = [a.strip() for a in os.getenv("bouardjaa@gmail.com", SMTP_USER).split(",") if a.strip()]
 
 # ------------------- Excel / Daten -------------------
 def _write_empty_workbook() -> None:
