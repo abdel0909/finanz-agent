@@ -7,4 +7,4 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-08-26,Giro_DE1234,LIDL,-24.59,EUR,Lebensmittel,Supermarkt ,"Steinofenpizza , Zaziki ,Kartofelsalat ,Eier ,2x Nudeln ,Cornichon scharf, ,Thunfisch , Rosenbrötchen , Berliner 10er , Backpapier , Putzschwamm",,csv
 2025-08-26,Giro_DE1234,Philipps,-17.62,EUR,Lebensmittel,supermarkt,"Frischhaltedosen",,csv
 2025-08-27,Giro_DE1234,kaffee,-1.70,EUR,Lebensmittel,kaffeteria,"Espresso",,csv
-2025-08-26,Giro_DE1234,LIDL,-12.00,EUR,Lebensmittel,Supermarkt ,"Wasser , Apfelschorle, Dorum , Schnitlauch ",,csv
+2025-08-27,Giro_DE1234,LIDL,-12.00,EUR,Lebensmittel,Supermarkt ,"Wasser , Apfelschorle, Dorum , Schnitlauch ",,csv
