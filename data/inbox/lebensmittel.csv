@@ -9,3 +9,5 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-08-27,Giro_DE1234,kaffee,-1.70,EUR,Lebensmittel,kaffeteria,"Espresso",,csv
 2025-08-27,Giro_DE1234,LIDL,-12.00,EUR,Lebensmittel,Supermarkt ,"Wasser , Apfelschorle, Dorum , Schnitlauch ",,csv
 2025-08-28,Giro_DE1234,kaffee,-1.80,EUR,Lebensmittel,kaffeteria,"Espresso",,csv
+2025-08-29,Giro_DE1234,kaffee,-1.80,EUR,Lebensmittel,Kaffeteria,"Espresso",,csv
+2025-08-29,Giro_DE1234,LIDL,-33.67EUR,Lebensmittel,supermarkt,"Wocheneinkauf",,csv
