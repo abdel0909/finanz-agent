@@ -11,3 +11,4 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-08-28,Giro_DE1234,kaffee,-1.80,EUR,Lebensmittel,kaffeteria,"Espresso",,csv
 2025-08-29,Giro_DE1234,kaffee,-1.80,EUR,Lebensmittel,Kaffeteria,"Espresso",,csv
 2025-08-29,Giro_DE1234,LIDL,-33.67,EUR,Lebensmittel,supermarkt,"Wocheneinkauf",,csv
+2025-08-30,Giro_DE1234,LIDL,-10.30EUR,Lebensmittel,supermarkt,"was mir gefehlt ist ",,csv
