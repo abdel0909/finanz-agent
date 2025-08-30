@@ -1,2 +1,3 @@
 date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
-2025-08-30,Giro_DE1234,TELEKOM,-60.00,EUR,Internet,telefon,,csv
+2025-09-17,Giro_DE1234,1&1,-42.00,EUR,1&1,Internet,Wlan für mehr Aktevität,,csv
+2025-09-17,Giro_DE1234,1&1,-7.99,EUR,1&1,Internet und Telefon,Erreichbarkeit,,csv
