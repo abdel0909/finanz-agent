@@ -1,2 +1,3 @@
 date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-08-01,Giro_DE1234,Sparkasse DirektVersicherung,-1600.00,EUR,Versicherung,KFZ Versicherung Teilkasko BMW, Jahres Beitrag,,csv
+2025-09-01,Giro_DE1234,Avocard,-1600.00,EUR,AvocardVersicherung,Rechtschutz , Monatliche  Beitrag ich muss es Wächsel,,csv
