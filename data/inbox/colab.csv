@@ -1,2 +1,2 @@
 date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
-2025-08-30,Giro_DE1234,Google Colab,-10.00,EUR,Colab,abo,,csv
+2025-09-21,Giro_DE1234,Google Colab,-11.01EUR,Colab,abo,Programierung,,csv
