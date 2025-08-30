@@ -1,2 +1,2 @@
 date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
-2025-08-30,Giro_DE1234,MIETE Wohnungs GmbH,-0.00,EUR,Miete,wohnen,,csv
+2025-09-01,Giro_DE1234,UKBS ,-637.00,EUR,Miete,wohnen,Monatliche Beitrag,,csv
