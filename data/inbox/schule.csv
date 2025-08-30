@@ -1,2 +1,3 @@
 date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
-2025-08-30,Giro_DE1234,Schule Yousra,-100.00,EUR,Schule,schule,Schulbeitrag,,csv
+2025-09-17,Giro_DE1234,Schule Yousra,-150.00,EUR,Schule,schule,Schulbeitrag,,csv
+2025-09-17,Giro_DE1234,Betruung Yousra,50.00,EUR,Schule,Betruung ,Betruungsgeld für 2 Wochen ,,csv
