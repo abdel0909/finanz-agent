@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 notify.py – Tages/Monats/Quartals/Jahres-Report per E-Mail (Gmail SMTP)
-Unabhängig vom Agent: erzeugt/repariert Budget.xlsx, baut Diagramme, sendet Mail.
+Erzeugt/repariert Budget.xlsx, baut Diagramme, sendet formatierten Mail-Report.
 """
 
+from __future__ import annotations
 import os, ssl, smtplib, re
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -21,14 +22,24 @@ import matplotlib.pyplot as plt
 BASE = Path(__file__).parent.resolve()
 WORKBOOK = BASE / "Budget.xlsx"
 REPORT_DIR = BASE / "reports"
+IMG_DIR = REPORT_DIR / "imgs"
+DEBUG_DIR = REPORT_DIR / "debug"
 TZ = ZoneInfo(os.getenv("LOCAL_TZ", "Europe/Berlin"))
 
+# Mail/SMTP ausschließlich per ENV (oder GitHub Secrets)
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
 SMTP_PORT   = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER   = os.getenv("SMTP_USER", "bouardjaa@gmail.com")
-SMTP_PASS   = os.getenv("SMTP_PASS", "zwqdwuyxdzydtaqu")
+SMTP_USER   = os.getenv("SMTP_USER", "bouardjaa@gmail.com")                 # z. B. deine@gmail.com
+SMTP_PASS   = os.getenv("SMTP_PASS", "zwqdwuyxdzydtaqu")                 # 16-stelliges App-Passwort
 EMAIL_FROM  = os.getenv("bouardjaa@gmail.com", SMTP_USER)
 EMAIL_TO    = [a.strip() for a in os.getenv("bouardjaa@gmail.com", SMTP_USER).split(",") if a.strip()]
+
+# Kopfzeile im Report (optional)
+REPORT_NAME  = os.getenv("REPORT_NAME", "")
+REPORT_ADDR1 = os.getenv("REPORT_ADDR1", "")
+REPORT_ADDR2 = os.getenv("REPORT_ADDR2", "")
+REPORT_ADDR3 = os.getenv("REPORT_ADDR3", "")
+PROFILE_ADDR_LINES = [x for x in (REPORT_ADDR1, REPORT_ADDR2, REPORT_ADDR3) if x]
 
 # ------------------- Excel / Daten -------------------
 def _write_empty_workbook() -> None:
@@ -63,8 +74,11 @@ def load_tx() -> pd.DataFrame:
     if tx.empty:
         return tx
     tx["date"] = pd.to_datetime(tx["date"], errors="coerce").dt.date
-    tx["amount_eur"] = pd.to_numeric(tx["amount_eur"], errors="coerce").fillna(0.0)
-    tx["category"] = tx.get("category", "").astype(str)
+    tx["amount_eur"] = pd.to_numeric(tx["amount_eur"], errors="coerce").fillna(0.0).round(2)
+    # Strings normieren
+    for c in ("account_id","payee","currency","category","tags","note","external_id","source"):
+        if c in tx.columns:
+            tx[c] = tx[c].astype(str)
     return tx
 
 # ------------------- Perioden/Reporting -------------------
@@ -82,91 +96,139 @@ def _period_range(period: str, ref: date) -> tuple[date, date, str]:
         qm = ((last_prev.month - 1)//3)*3 + 1
         s = date(last_prev.year, qm, 1)
         e = date(last_prev.year, qm+3, 1) - timedelta(days=1)
-        label = f"{s.strftime('%Y-Q')}{(s.month-1)//3 + 1}"
+        label = f"{s.year}-Q{((s.month-1)//3)+1}"
     elif period == "yearly":
         s = date(ref.year-1, 1, 1); e = date(ref.year-1, 12, 31); label = str(s.year)
     else:
         raise ValueError("period must be daily|monthly|quarterly|yearly")
     return s, e, label
 
-def _sum_spent(df: pd.DataFrame) -> float:
-    return float((-df.loc[df["amount_eur"] < 0, "amount_eur"]).sum())
-
 def build_report(period: str, today: date | None = None) -> dict:
     tx = load_tx()
     if today is None: today = datetime.now(TZ).date()
     s, e, label = _period_range(period, today)
-    mask = (tx["date"] >= s) & (tx["date"] <= e) if not tx.empty else []
-    df = tx.loc[mask].copy() if not tx.empty else pd.DataFrame(columns=tx.columns)
 
-    total_spent = _sum_spent(df) if not df.empty else 0.0
-    income = float(df.loc[df["amount_eur"] > 0, "amount_eur"].sum()) if not df.empty else 0.0
-    net = float(df["amount_eur"].sum()) if not df.empty else 0.0
+    if tx.empty:
+        df = pd.DataFrame(columns=["date","amount_eur","category"])
+    else:
+        mask = (tx["date"] >= s) & (tx["date"] <= e)
+        df = tx.loc[mask].copy()
 
-    # Kategorien
+    # Einnahmen/Ausgaben/Netto robust
+    income_df  = df[df["amount_eur"] > 0] if not df.empty else df
+    expense_df = df[df["amount_eur"] < 0] if not df.empty else df
+
+    income = round(float(income_df["amount_eur"].sum()), 2) if not df.empty else 0.0
+    spent  = round(float((-expense_df["amount_eur"]).sum()), 2) if not df.empty else 0.0
+    net    = round(income - spent, 2)
+
+    # Kategorien (nur Ausgaben)
     cats = pd.DataFrame(columns=["category","spent"])
     images: list[Path] = []
-    (REPORT_DIR/"imgs").mkdir(parents=True, exist_ok=True)
+    IMG_DIR.mkdir(parents=True, exist_ok=True)
 
     if not df.empty:
-        cat = df[df["amount_eur"] < 0].groupby("category", as_index=False)["amount_eur"].sum()
+        if "category" not in df.columns:
+            df["category"] = ""
+        cat = expense_df.groupby("category", as_index=False)["amount_eur"].sum()
         cat["spent"] = -cat["amount_eur"]
         cats = cat[["category","spent"]].sort_values("spent", ascending=False)
 
-        # Balken-Chart Top-Kategorien
+        # Balken Top-Kategorien
         if not cats.empty:
             fig = plt.figure()
             top = cats.head(10).sort_values("spent")
             plt.barh(top["category"], top["spent"])
             plt.title(f"Top-Kategorien {period} {label}")
             plt.xlabel("EUR")
-            p = REPORT_DIR/"imgs"/f"{period}_{label}_categories.png"
-            fig.tight_layout(); fig.savefig(p); plt.close(fig)
-            images.append(p)
+            p1 = IMG_DIR / f"{period}_{label}_categories.png"
+            fig.tight_layout(); fig.savefig(p1); plt.close(fig)
+            images.append(p1)
 
-        # Zeitreihe kumulierte Ausgaben
+        # Zeitreihe kumulierte Ausgaben (für >= Monat)
         if period in ("monthly","quarterly","yearly"):
-            fig = plt.figure()
             day = df.groupby("date", as_index=False)["amount_eur"].sum()
             day["cum_spent"] = (-day["amount_eur"].clip(upper=0)).cumsum()
+            fig = plt.figure()
             plt.plot(day["date"], day["cum_spent"])
             plt.title(f"Kumulierte Ausgaben {period} {label}")
             plt.xlabel("Datum"); plt.ylabel("EUR")
-            p = REPORT_DIR/"imgs"/f"{period}_{label}_timeseries.png"
-            fig.tight_layout(); fig.savefig(p); plt.close(fig)
-            images.append(p)
+            p2 = IMG_DIR / f"{period}_{label}_timeseries.png"
+            fig.tight_layout(); fig.savefig(p2); plt.close(fig)
+            images.append(p2)
 
-    # einfache Bewertung
-    savings_rate = (income + net) / income if income > 0 else 0.0
+    # Bewertung (sparquote ~ Anteil nicht ausgegeben)
+    savings_rate = (income - spent) / income if income > 0 else 0.0
     rating = "✅ gut"
-    if income == 0 and total_spent > 0: rating = "⚠️ nur Ausgaben"
-    elif savings_rate < 0.05:          rating = "⚠️ sehr niedrig"
-    elif savings_rate < 0.15:          rating = "🟡 mittel"
+    if income == 0 and spent > 0: rating = "⚠️ nur Ausgaben"
+    elif savings_rate < 0.05:     rating = "⚠️ sehr niedrig"
+    elif savings_rate < 0.15:     rating = "🟡 mittel"
 
     return {
         "period": period, "label": label, "start": s, "end": e,
-        "spent": round(total_spent, 2), "income": round(income, 2), "net": round(net, 2),
+        "spent": spent, "income": income, "net": net,
         "top_categories": cats.to_dict("records"), "images": images, "rating": rating
     }
 
-def render_html(rep: dict) -> str:
+# ------------------- HTML/Table Rendering -------------------
+def make_table_html(df: pd.DataFrame) -> str:
+    if df is None or df.empty:
+        return "<p>(Keine Buchungen im Zeitraum)</p>"
+    cols = [c for c in ["date","account_id","payee","amount_eur","currency","category","tags","note"] if c in df.columns]
+    tdf = df[cols].copy()
+    tdf["date"] = pd.to_datetime(tdf["date"], errors="coerce").dt.strftime("%Y-%m-%d")
+    if "amount_eur" in tdf:
+        tdf["amount_eur"] = pd.to_numeric(tdf["amount_eur"], errors="coerce").fillna(0).round(2)
+        tdf["amount_eur"] = tdf["amount_eur"].map(lambda x: f"{x:,.2f}".replace(",", " ").replace(".", ",")).replace(" ", ".")
+    html = tdf.to_html(index=False, escape=False)
+    # minimale Optik
+    html = html.replace("<table", '<table style="border-collapse:collapse;width:100%;font-size:13px"') \
+               .replace("<th", '<th style="border-bottom:1px solid #eaeaea;text-align:left;padding:6px 8px"') \
+               .replace("<td", '<td style="border-bottom:1px solid #f4f4f4;padding:6px 8px"')
+    return html
+
+def render_html(rep: dict, table_html: str | None = None) -> str:
+    name_html = f"<strong>{REPORT_NAME}</strong><br/>" if REPORT_NAME else ""
+    addr_html = "<br/>".join(PROFILE_ADDR_LINES) if PROFILE_ADDR_LINES else ""
+
     cats = "".join([f"<li>{c['category']}: {c['spent']:.2f} €</li>" for c in rep["top_categories"][:10]]) or "<li>(keine)</li>"
-    imgs = "".join([f'<p><b>{p.name}</b> (Anhang)</p>' for p in rep["images"]])
+    imgs = "".join([f'<p><small>{p.name}</small> (Anhang)</p>' for p in rep["images"]])
+    tbl  = table_html or "<p>(Keine Buchungen im Zeitraum)</p>"
+
     return f"""
-    <h2>Finanz-Report ({rep['period']} – {rep['label']})</h2>
-    <p><b>Zeitraum:</b> {rep['start']} bis {rep['end']}</p>
-    <ul>
-      <li><b>Ausgaben</b>: {rep['spent']:.2f} €</li>
-      <li><b>Einnahmen</b>: {rep['income']:.2f} €</li>
-      <li><b>Netto</b>: {rep['net']:.2f} €</li>
-      <li><b>Bewertung</b>: {rep['rating']}</li>
-    </ul>
-    <p><b>Top-Kategorien</b></p>
-    <ul>{cats}</ul>
-    <hr/>{imgs}
+    <div style="width:100%;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:14px;color:#222;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">
+        <div style="text-align:left;line-height:1.4">{name_html}{addr_html}</div>
+        <div style="text-align:center;margin:0 auto;">
+          <h2 style="margin:0 0 4px;">Finanz-Report</h2>
+          <div style="font-weight:600">{rep['period'].capitalize()} – {rep['label']}</div>
+          <div style="font-size:12px;color:#666">{rep['start']} bis {rep['end']}</div>
+        </div>
+        <div style="min-width:120px;"></div>
+      </div>
+
+      <hr style="margin:12px 0;border:none;border-top:1px solid #eee"/>
+
+      <ul style="margin:0 0 8px 16px;padding:0;">
+        <li><b>Ausgaben</b>: {rep['spent']:.2f} €</li>
+        <li><b>Einnahmen</b>: {rep['income']:.2f} €</li>
+        <li><b>Netto</b>: {rep['net']:.2f} €</li>
+        <li><b>Bewertung</b>: {rep['rating']}</li>
+      </ul>
+
+      <p style="margin:12px 0 4px;"><b>Top-Kategorien (Ausgaben)</b></p>
+      <ul style="margin:0 0 12px 16px;padding:0;">{cats}</ul>
+
+      <p style="margin:12px 0 4px;"><b>Buchungen</b></p>
+      <div style="overflow-x:auto;border:1px solid #eee;border-radius:6px;">
+        {tbl}
+      </div>
+
+      <div style="margin-top:12px">{imgs}</div>
+    </div>
     """
 
-# ------------------- Mailversand (robust) -------------------
+# ------------------- Mailversand -------------------
 def send_email(subject: str, html: str, attachments: list[Path]) -> None:
     if not (SMTP_USER and SMTP_PASS and EMAIL_FROM and EMAIL_TO):
         raise RuntimeError("SMTP/Gmail Variablen fehlen (SMTP_USER/SMTP_PASS/EMAIL_FROM/EMAIL_TO).")
@@ -176,13 +238,10 @@ def send_email(subject: str, html: str, attachments: list[Path]) -> None:
         html = "<p>(Kein HTML-Inhalt erzeugt)</p>"
     plain = re.sub(r"<[^>]+>", "", html).replace("&nbsp;", " ").strip() or "(Kein Inhalt)"
 
-    # Debug: Body ablegen
-    debug_dir = REPORT_DIR / "debug"
-    debug_dir.mkdir(parents=True, exist_ok=True)
-    (debug_dir / "last_mail.html").write_text(html, encoding="utf-8")
-    (debug_dir / "last_mail.txt").write_text(plain, encoding="utf-8")
+    DEBUG_DIR.mkdir(parents=True, exist_ok=True)
+    (DEBUG_DIR / "last_mail.html").write_text(html, encoding="utf-8")
+    (DEBUG_DIR / "last_mail.txt").write_text(plain, encoding="utf-8")
 
-    # multipart/mixed (Anhänge) + multipart/alternative (plain+html)
     msg = MIMEMultipart("mixed")
     msg["Subject"] = subject
     msg["From"] = EMAIL_FROM
@@ -194,10 +253,13 @@ def send_email(subject: str, html: str, attachments: list[Path]) -> None:
     msg.attach(alt)
 
     for p in attachments:
-        with open(p, "rb") as f:
-            part = MIMEApplication(f.read(), Name=p.name)
-        part["Content-Disposition"] = f'attachment; filename="{p.name}"'
-        msg.attach(part)
+        try:
+            with open(p, "rb") as f:
+                part = MIMEApplication(f.read(), Name=p.name)
+            part["Content-Disposition"] = f'attachment; filename="{p.name}"'
+            msg.attach(part)
+        except FileNotFoundError:
+            print(f"[WARN] Anhang fehlt: {p}")
 
     ctx = ssl.create_default_context()
     with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as s:
@@ -211,10 +273,11 @@ def _daily_at_20_local() -> bool:
 
 def run(period: str, send: bool = True) -> None:
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
+    IMG_DIR.mkdir(parents=True, exist_ok=True)
     today = datetime.now(TZ).date()
 
-    periods: list[str] = []
     if period == "auto":
+        periods: list[str] = []
         if _daily_at_20_local(): periods.append("daily")
         if today.day == 1:
             periods.append("monthly")
@@ -225,22 +288,32 @@ def run(period: str, send: bool = True) -> None:
 
     for per in periods:
         rep = build_report(per, today=today)
+
+        # Tabelle (für daily alle Zeilen, sonst top 30)
+        tx = load_tx()
+        if tx.empty:
+            df_period = pd.DataFrame()
+        else:
+            m = (tx["date"] >= rep["start"]) & (tx["date"] <= rep["end"])
+            df_period = tx.loc[m].copy()
+            if per != "daily":
+                df_period = df_period.sort_values(["date","amount_eur"], ascending=[True, False]).head(30)
+
+        table_html = make_table_html(df_period) if not df_period.empty else "<p>(Keine Buchungen im Zeitraum)</p>"
+        html = render_html(rep, table_html=table_html)
+
         subject = f"Finanzen – {per} – {rep['label']} (Ausgaben {rep['spent']:.2f} €)"
-        html = render_html(rep)
         atts = list(rep["images"])
 
-        # kleine CSV-Beilagen
+        # CSV-Beilage (daily)
         if per == "daily":
-            tx = load_tx()
-            m = (tx["date"] >= rep["start"]) & (tx["date"] <= rep["end"]) if not tx.empty else []
             dayfile = REPORT_DIR / f"report_{rep['label']}_day.csv"
-            (tx.loc[m] if not tx.empty else tx).to_csv(dayfile, index=False); atts.append(dayfile)
-        elif per == "monthly":
-            mon = REPORT_DIR / f"report_{rep['label']}.csv"
-            if mon.exists(): atts.append(mon)
+            df_period.to_csv(dayfile, index=False)
+            atts.append(dayfile)
 
-        print(f"[REPORT] {per} {rep['label']} | spent={rep['spent']:.2f} | atts={len(atts)}")
+        print(f"[REPORT] {per} {rep['label']} | income={rep['income']:.2f} | spent={rep['spent']:.2f} | net={rep['net']:.2f} | atts={len(atts)}")
         print(f"[DEBUG] HTML length: {len(html)} | to={EMAIL_TO}")
+
         if send:
             send_email(subject, html, atts)
             print(f"[MAIL] gesendet an: {EMAIL_TO}")
