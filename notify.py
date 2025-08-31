@@ -173,22 +173,7 @@ def build_report(period: str, today: date | None = None) -> dict:
     }
 
 # ====================== PDF Rendering ======================
-def _kpi_box(label: str, value: float, border_color=colors.black):
-    box = Table(
-        [
-            [Paragraph(label, styles["KPI_Label"])],
-            [Paragraph(f"<b>{value:,.2f} €</b>".replace(",", "X").replace(".", ",").replace("X", "."), styles["KPI"])],
-        ],
-        colWidths=[65*mm],
-        rowHeights=[10*mm, 16*mm],
-        style=TableStyle([
-            ("BOX", (0,0), (-1,-1), 1, border_color),
-            ("TOPPADDING", (0,0), (-1,-1), 3),
-            ("BOTTOMPADDING", (0,0), (-1,-1), 3),
-        ])
-    )
-    return box
-
+# ====================== PDF Rendering ======================
 def render_pdf_statement(rep: dict, out_pdf: Path, profile: dict) -> Path:
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -201,6 +186,13 @@ def render_pdf_statement(rep: dict, out_pdf: Path, profile: dict) -> Path:
 
     flow = []
 
+    # Header-Balken
+    header_bar = Table(
+        [[""]], colWidths=[doc.width], rowHeights=[10*mm],
+        style=TableStyle([("BACKGROUND", (0,0), (-1,-1), BLUE)])
+    )
+    flow.append(header_bar)
+
     # Kopf: Name/Adresse links, Datum rechts
     header_table = Table(
         [
@@ -210,9 +202,7 @@ def render_pdf_statement(rep: dict, out_pdf: Path, profile: dict) -> Path:
             ]
         ],
         colWidths=[120*mm, 40*mm],
-        style=TableStyle([
-            ("ALIGN", (1,0), (1,0), "RIGHT"),
-        ])
+        style=TableStyle([("ALIGN", (1,0), (1,0), "RIGHT")])
     )
     flow += [header_table, Spacer(1, 6)]
 
@@ -224,10 +214,10 @@ def render_pdf_statement(rep: dict, out_pdf: Path, profile: dict) -> Path:
         Spacer(1, 6)
     ]
 
-    # KPI-Reihe (3 Boxen)
+    # KPI-Reihe
     kpis = Table(
         [[
-            _kpi_box("Ausgaben",  -rep["spent"], border_color=BLUE),   # negativer Betrag anzeigen? -> KPI zeigt als Betrag, daher -spent in Box
+            _kpi_box("Ausgaben",  -rep["spent"], border_color=BLUE),
             _kpi_box("Einnahmen", rep["income"], border_color=GREEN),
             _kpi_box("Netto",     rep["net"],    border_color=colors.black),
         ]],
@@ -243,16 +233,14 @@ def render_pdf_statement(rep: dict, out_pdf: Path, profile: dict) -> Path:
     if df.empty:
         flow += [Paragraph("Keine Buchungen im Zeitraum.", styles["Small"])]
     else:
-        # Nur die wichtigsten Spalten & schmale Breiten
         view_cols = ["date","account_id","payee","amount_eur","currency","category","tags","note"]
         df = df[view_cols].fillna("")
-        # Zahlen hübsch
         df["amount_eur"] = df["amount_eur"].map(lambda x: f"{x:,.2f} €".replace(",", "X").replace(".", ",").replace("X", "."))
-        # Kopf + Daten
+
         data = [list(df.columns)] + df.values.tolist()
 
-        # Spaltenbreiten (Summe < Seitenbreite)
-        col_w_mm = [22, 26, 35, 24, 16, 28, 28, 40]  # in mm; insgesamt 219 mm -> passt mit Rändern (A4: 210mm; Innen: ~174mm), daher kleiner wählen:
+        # Spaltenbreiten anpassen
+        col_w_mm = [20, 25, 35, 25, 20, 28, 28, 40]
         scale = (doc.width / mm) / sum(col_w_mm)
         col_w = [w*scale*mm for w in col_w_mm]
 
@@ -264,21 +252,22 @@ def render_pdf_statement(rep: dict, out_pdf: Path, profile: dict) -> Path:
                 ("BACKGROUND", (0,0), (-1,0), BLUE),
                 ("TEXTCOLOR", (0,0), (-1,0), colors.white),
                 ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
-                ("ALIGN", (3,1), (3,-1), "RIGHT"),
+                ("ALIGN", (0,0), (-1,-1), "CENTER"),       # alle Zellen mittig
+                ("VALIGN", (0,0), (-1,-1), "MIDDLE"),      # vertikal mittig
                 ("GRID", (0,0), (-1,-1), 0.3, colors.grey),
                 ("ROWBACKGROUNDS", (0,1), (-1,-1), [colors.whitesmoke, colors.white]),
                 ("FONTSIZE", (0,0), (-1,-1), 8),
-                ("LEADING", (0,0), (-1,-1), 10),
+                ("LEADING", (0,0), (-1,-1), 9),
+                ("WORDWRAP", (0,0), (-1,-1), True),        # Text umbrechen
             ])
         )
         flow += [tbl]
 
     flow += [Spacer(1, 6), Paragraph(f"Erstellt am {datetime.now(TZ).strftime('%Y-%m-%d %H:%M')}", styles["Small"]), Spacer(1, 8)]
 
-    # Diagramm direkt danach (falls vorhanden)
     if rep["chart"] and Path(rep["chart"]).exists():
         max_w = doc.width * 0.75
-        img = RLImage(str(rep["chart"]), width=max_w, height=55*mm)  # begrenzen
+        img = RLImage(str(rep["chart"]), width=max_w, height=55*mm)
         flow += [Paragraph("Diagramm", styles["Section"]), img]
 
     doc.build(flow)
