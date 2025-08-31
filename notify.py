@@ -159,108 +159,180 @@ def build_report(period: str, today: date | None = None) -> Dict:
     }
 
 # ------------------- PDF Rendering -------------------
-def _heading(elements, styles, rep):
-    # Name/Adresse (wenn gesetzt)
-    if PROFILE_NAME:
-        elements.append(Paragraph(f"<b>{PROFILE_NAME}</b>", styles["Normal"]))
-    if PROFILE_ADDRESS:
-        elements.append(Paragraph(PROFILE_ADDRESS, styles["Normal"]))
-    if PROFILE_NAME or PROFILE_ADDRESS:
-        elements.append(Spacer(1, 6))
+# --- NEU: PDF-Renderer ersetzen --------------------------------------------
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import mm
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, KeepTogether
+from xml.sax.saxutils import escape as _esc
 
-    # Titelblock
-    elements.append(Paragraph("<para alignment='center'><font size=22><b>Finanz-Report</b></font></para>", styles["Normal"]))
-    elements.append(Paragraph(
-        f"<para alignment='center'><font size=12>{rep['period'].capitalize()} – {rep['label']}</font></para>",
-        styles["Normal"])
-    )
-    elements.append(Paragraph(
-        f"<para alignment='center'><font size=10>{rep['start']} bis {rep['end']}</font></para>",
-        styles["Normal"])
-    )
-    elements.append(Spacer(1, 12))
+def _eur(x: float) -> str:
+    try:
+        s = f"{float(x):,.2f}"
+    except Exception:
+        return str(x)
+    return s.replace(",", "X").replace(".", ",").replace("X", ".") + " €"
 
-def _cards(elements, rep):
-    # Drei Kennzahlen-Karten in einer Zeile
-    data = [
-        ["Ausgaben",  f"{rep['spent']:.2f} €"],
-        ["Einnahmen", f"{rep['income']:.2f} €"],
-        ["Netto",     f"{rep['net']:.2f} €"],
-    ]
-    # Drei schmale Tabellen nebeneinander
-    widths = [6.2*cm, 6.2*cm, 6.2*cm]
-    row = []
-    for i, (label, val) in enumerate(data):
-        t = Table([[label],[f"<b>{val}</b>"]],
-                  colWidths=[widths[i]],
-                  rowHeights=[0.9*cm, 1.1*cm],
-                  style=TableStyle([
-                      ("BOX", (0,0), (-1,-1), 1, colors.black),
-                      ("LINEABOVE", (0,0), (-1,0), 2, [colors.HexColor("#1E88E5"), colors.HexColor("#2E7D32"), colors.black][i]),
-                      ("ALIGN", (0,1), (-1,1), "RIGHT"),
-                      ("RIGHTPADDING", (0,1), (-1,1), 8),
-                      ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
-                      ("FONTSIZE", (0,0), (-1,-1), 10),
-                  ]))
-        row.append(t)
-    elements.append(Table([row], colWidths=widths, style=TableStyle([])))
-    elements.append(Spacer(1, 12))
+def _scaled_colwidths(target_width, mm_widths):
+    pts = [w * mm for w in mm_widths]
+    total = sum(pts)
+    if total <= target_width:
+        return pts
+    f = target_width / total
+    return [p * f for p in pts]
 
-def _tx_table(elements, df: pd.DataFrame, styles):
-    elements.append(Paragraph("<b>Buchungen</b>", styles["Heading2"]))
-    if df.empty:
-        elements.append(Paragraph("(Keine Buchungen)", styles["Normal"]))
-        elements.append(Spacer(1, 6))
-        return
+def _df_to_wrapped_table(df, doc_width):
+    # gewünschte Spaltenreihenfolge (falls vorhanden)
+    cols = [c for c in ["date","account_id","payee","amount_eur","currency","category","tags","note"] if c in df.columns]
+    df = df[cols].copy()
 
-    show_cols = ["date","account_id","payee","amount_eur","currency","category","tags","note"]
-    table_data = [show_cols] + df[show_cols].astype(str).values.tolist()
+    # Formatierungen
+    if "amount_eur" in df.columns:
+        df["amount_eur"] = df["amount_eur"].map(_eur)
 
-    col_widths = [2.2*cm, 2.6*cm, 3.2*cm, 2.2*cm, 1.6*cm, 2.8*cm, 3*cm, 4.5*cm]
-    t = Table(table_data, repeatRows=1, colWidths=col_widths)
-    t.setStyle(TableStyle([
-        ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#1976D2")),
-        ("TEXTCOLOR", (0,0), (-1,0), colors.white),
-        ("FONTSIZE", (0,0), (-1,0), 9),
-        ("FONTSIZE", (0,1), (-1,-1), 8),
-        ("ALIGN", (0,0), (-1,0), "CENTER"),
-        ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
-        ("GRID", (0,0), (-1,-1), 0.25, colors.black),
-        ("ROWBACKGROUNDS", (0,1), (-1,-1), [colors.whitesmoke, colors.Color(1,1,1)]),
-    ]))
-    elements.append(t)
-    elements.append(Spacer(1, 8))
-    ts = datetime.now(TZ).strftime("%Y-%m-%d %H:%M")
-    elements.append(Paragraph(f"<font size=8>Erstellt am {ts}</font>", styles["Normal"]))
-    elements.append(Spacer(1, 12))
-
-def _chart(elements, rep):
-    if not rep["images"]:
-        return
-    elements.append(Paragraph("<b>Diagramm</b>", getSampleStyleSheet()["Heading2"]))
-    img_path = rep["images"][0]
-    img = Image(str(img_path), width=14*cm, height=7*cm)  # kompakte Größe
-    img.hAlign = "CENTER"
-    elements.append(img)
-
-def render_pdf_statement(rep: Dict, out: Path) -> Path:
-    REPORT_DIR.mkdir(parents=True, exist_ok=True)
     styles = getSampleStyleSheet()
-    # etwas straffere Normal-Schrift
-    styles["Normal"].fontName = "Helvetica"
-    styles["Normal"].fontSize = 10
+    cell = ParagraphStyle(
+        "cell", parent=styles["Normal"], fontSize=8, leading=10,
+        spaceAfter=0, spaceBefore=0
+    )
+    # Header-Stil
+    header = ParagraphStyle(
+        "header", parent=styles["Normal"], fontSize=9, leading=11,
+        textColor=colors.whitesmoke, spaceAfter=0, spaceBefore=0
+    )
 
-    elements: List[Flowable] = []
-    _heading(elements, styles, rep)
-    _cards(elements, rep)
-    _tx_table(elements, rep["df"], styles)
-    _chart(elements, rep)
+    # Head + Rows -> Paragraphs (wrapping)
+    data = [[Paragraph(_esc(str(c)), header) for c in cols]]
+    for _, r in df.iterrows():
+        row = [Paragraph(_esc("" if pd.isna(r[c]) else str(r[c])), cell) for c in cols]
+        data.append(row)
 
-    doc = SimpleDocTemplate(str(out), pagesize=A4,
-                            leftMargin=1.5*cm, rightMargin=1.5*cm,
-                            topMargin=1.5*cm, bottomMargin=1.5*cm)
-    doc.build(elements)
-    return out
+    # Spaltenbreiten (in mm, wird auf Seitenbreite skaliert)
+    #             date  acct   payee  amount curr  cat    tags   note
+    mm_widths = [ 22,   24,    50,    22,    16,   38,    38,    64 ]
+    colWidths = _scaled_colwidths(doc_width, mm_widths[:len(cols)])
+
+    tbl = Table(data, colWidths=colWidths, repeatRows=1, hAlign="LEFT")
+    tbl.setStyle(TableStyle([
+        # Header
+        ("BACKGROUND", (0,0), (-1,0), colors.Color(0.10,0.33,0.85)),
+        ("TEXTCOLOR",  (0,0), (-1,0), colors.whitesmoke),
+        ("FONTNAME",   (0,0), (-1,0), "Helvetica-Bold"),
+        ("ALIGN",      (0,0), (-1,0), "CENTER"),
+        ("BOTTOMPADDING",(0,0),(-1,0), 6),
+
+        # Body
+        ("FONTNAME", (0,1), (-1,-1), "Helvetica"),
+        ("FONTSIZE", (0,1), (-1,-1), 8),
+        ("LEADING",  (0,1), (-1,-1), 10),
+        ("VALIGN",   (0,1), (-1,-1), "TOP"),
+        ("ROWBACKGROUNDS",(0,1),(-1,-1), [colors.whitesmoke, colors.Color(0.97,0.97,0.97)]),
+        ("GRID", (0,0), (-1,-1), 0.3, colors.Color(0.80,0.80,0.85)),
+
+        # etwas Luft
+        ("LEFTPADDING", (0,0), (-1,-1), 4),
+        ("RIGHTPADDING",(0,0), (-1,-1), 4),
+        ("TOPPADDING",  (0,0), (-1,-1), 3),
+        ("BOTTOMPADDING",(0,0),(-1,-1), 3),
+    ]))
+    return tbl
+
+def render_pdf_statement(rep: dict, df: pd.DataFrame, images: list[Path], out_pdf: Path, profile: dict):
+    """
+    Erzeugt ein kompaktes, farbiges PDF mit:
+    - Titel + Zeitraum
+    - KPI-Leiste (Ausgaben/Einnahmen/Netto)
+    - Diagramm direkt darunter (wenn vorhanden)
+    - Buchungstabelle (schmale Spalten, Wrapping)
+    """
+    out_pdf.parent.mkdir(parents=True, exist_ok=True)
+
+    # Dokument-Setup
+    doc = SimpleDocTemplate(
+        str(out_pdf),
+        pagesize=A4,
+        leftMargin=18*mm, rightMargin=18*mm,
+        topMargin=16*mm, bottomMargin=16*mm
+    )
+    styles = getSampleStyleSheet()
+    h1 = ParagraphStyle("h1", parent=styles["Heading1"], fontSize=24, leading=28, alignment=1)  # centered
+    h2 = ParagraphStyle("h2", parent=styles["Heading2"], fontSize=12, leading=14, alignment=1)
+    hsec = ParagraphStyle("hsec", parent=styles["Heading2"], fontSize=16, leading=19, spaceBefore=10, spaceAfter=6)
+    small = ParagraphStyle("small", parent=styles["Normal"], fontSize=8, textColor=colors.grey)
+
+    elems = []
+
+    # Titel
+    elems.append(Paragraph("Finanz-Report", h1))
+    subtitle = f"{rep['period'].capitalize()} – {rep['label']}<br/>{rep['start']} bis {rep['end']}"
+    elems.append(Paragraph(subtitle, h2))
+    elems.append(Spacer(1, 6*mm))
+
+    # KPI-Leiste (3 Boxen)
+    k_label = ParagraphStyle("k_label", parent=styles["Normal"], fontSize=10, textColor=colors.grey)
+    k_val   = ParagraphStyle("k_val",   parent=styles["Heading2"], fontSize=14, leading=16, textColor=colors.black)
+
+    kpi_data = [
+        [Paragraph("Ausgaben", k_label), Paragraph(f"<b>{_eur(rep['spent'])}</b>", k_val)],
+        [Paragraph("Einnahmen", k_label), Paragraph(f"<b>{_eur(rep['income'])}</b>", k_val)],
+        [Paragraph("Netto", k_label), Paragraph(f"<b>{_eur(rep['net'])}</b>", k_val)],
+    ]
+
+    # drei gleich breite Boxen über die Seitenbreite
+    box_w = (doc.width - 2*mm) / 3.0
+    kpi = Table(
+        [[kpi_data[0]], [kpi_data[1]], [kpi_data[2]]],
+        colWidths=[box_w], rowHeights=None, hAlign="LEFT"
+    )
+    kpi.setStyle(TableStyle([
+        ("BOX", (0,0), (-1,-1), 0.9, colors.black),
+        ("INNERGRID", (0,0), (-1,-1), 0.6, colors.black),
+        ("LEFTPADDING",(0,0),(-1,-1), 6),
+        ("RIGHTPADDING",(0,0),(-1,-1), 6),
+        ("TOPPADDING",(0,0),(-1,-1), 6),
+        ("BOTTOMPADDING",(0,0),(-1,-1), 8),
+        # kleine Farbakzente oben
+        ("LINEABOVE",(0,0),(0,0), 2, colors.Color(0.10,0.33,0.85)),  # blau
+        ("LINEABOVE",(0,1),(0,1), 2, colors.Color(0.10,0.65,0.35)),  # grün
+        ("LINEABOVE",(0,2),(0,2), 2, colors.black),
+    ]))
+
+    # kpi nebeneinander anordnen
+    krow = Table([[kpi._cellvalues[0][0], kpi._cellvalues[1][0], kpi._cellvalues[2][0]]],
+                 colWidths=[box_w, box_w, box_w], hAlign="LEFT", spaceBefore=0, spaceAfter=6)
+    krow.setStyle(TableStyle([
+        ("LEFTPADDING",(0,0),(-1,-1),0),
+        ("RIGHTPADDING",(0,0),(-1,-1),0),
+        ("TOPPADDING",(0,0),(-1,-1),0),
+        ("BOTTOMPADDING",(0,0),(-1,-1),0),
+    ]))
+    elems.append(krow)
+    elems.append(Spacer(1, 6*mm))
+
+    # Diagramm direkt nach den KPIs
+    if images:
+        elems.append(Paragraph("Diagramm", hsec))
+        img = Image(str(images[0]))
+        # auf max 75% der Textbreite und 55 mm Höhe begrenzen (Seitenlayout)
+        max_w = doc.width * 0.75
+        max_h = 55 * mm
+        img._restrictSize(max_w, max_h)
+        elems.append(img)
+        elems.append(Spacer(1, 6*mm))
+
+    # Buchungen
+    elems.append(Paragraph("Buchungen", hsec))
+    if df is not None and not df.empty:
+        table = _df_to_wrapped_table(df.copy(), doc.width)
+        elems.append(table)
+        elems.append(Spacer(1, 3*mm))
+        elems.append(Paragraph(f"Erstellt am {datetime.now(TZ).strftime('%Y-%m-%d %H:%M')}", small))
+    else:
+        elems.append(Paragraph("<i>Keine Buchungen im Zeitraum.</i>", styles["Normal"]))
+
+    doc.build(elems)
+# --- Ende NEU ----------------------------------------------------------------
 
 # ------------------- E-Mail Versand -------------------
 def send_email(subject: str, html: str, attachments: List[Path]) -> None:
