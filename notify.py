@@ -1,33 +1,36 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-notify.py – Tages/Monats/Quartals/Jahres-Report per E-Mail (Gmail SMTP)
-- Repariert/legt Budget.xlsx bei Bedarf neu an
-- Berechnet Kennzahlen & Zeitraum-Daten
-- Erstellt Diagramme (matplotlib)
-- Baut schlankes, farbiges PDF (ReportLab) mit schmaler Tabelle
-- Sendet E-Mail (HTML + PDF + CSV-Anhänge)
+notify.py – PDF/CSV-Finanzberichte per E-Mail (Gmail SMTP)
 
-Abhängigkeiten (requirements.txt):
-  pandas
-  openpyxl
-  matplotlib
-  reportlab
+- Liest Budget.xlsx (Transactions)
+- Erzeugt Diagramm + kompaktes, farbiges PDF (Header, Kennzahlen, Tabelle, Diagramm)
+- Versendet Daily/Monthly/Quarterly/Yearly oder automatisch um 20:00 lokal
+
+Autor: Dein Finanz-Agent
 """
 
+from __future__ import annotations
 import os, ssl, smtplib, re
 from pathlib import Path
 from datetime import datetime, date, timedelta
 from zoneinfo import ZoneInfo
 from zipfile import BadZipFile
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.application import MIMEApplication
+from typing import Tuple, List, Dict
 
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# ============ Pfade & Umgebung ============
+# ReportLab (PDF)
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.units import cm
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import (
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, Flowable
+)
+
+# ------------------- Pfade & Umgebung -------------------
 BASE        = Path(__file__).parent.resolve()
 WORKBOOK    = BASE / "Budget.xlsx"
 REPORT_DIR  = BASE / "reports"
@@ -35,20 +38,19 @@ IMG_DIR     = REPORT_DIR / "imgs"
 DEBUG_DIR   = REPORT_DIR / "debug"
 TZ          = ZoneInfo(os.getenv("LOCAL_TZ", "Europe/Berlin"))
 
-# Mail / Profile (Gmail App-Passwort nutzen!)
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
 SMTP_PORT   = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER   = os.getenv("SMTP_USER", "bouardjaa@gmail.com")
 SMTP_PASS   = os.getenv("SMTP_PASS", "zwqdwuyxdzydtaqu")
-EMAIL_FROM  = os.getenv("bouardjaa@gmail.com", SMTP_USER)
-EMAIL_TO    = [a.strip() for a in os.getenv("bouardjaa@gmail.com", SMTP_USER).split(",") if a.strip()]
+EMAIL_FROM  = os.getenv("bouardjaa@gmail.com", SMTP_USER or "")
+EMAIL_TO    = [a.strip() for a in os.getenv("bouardjaa@gmail.com", SMTP_USER or "").split(",") if a.strip()]
 
-PROFILE_NAME    = os.getenv("PROFILE_NAME", "")       # z.B. "Max Mustermann"
-PROFILE_ADDRESS = os.getenv("PROFILE_ADDRESS", "")    # z.B. "Musterstraße 1, 12345 Musterstadt"
+PROFILE_NAME    = os.getenv("PROFILE_NAME", "").strip()
+PROFILE_ADDRESS = os.getenv("PROFILE_ADDRESS", "").strip()
 
-# ============ Excel sichern / laden ============
+# ------------------- Excel-Absicherung -------------------
 def _write_empty_workbook() -> None:
-    """Legt minimale Budget.xlsx mit nötigen Sheets an."""
+    """Legt minimale Budget.xlsx an."""
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     tx = pd.DataFrame(columns=[
         "date","account_id","payee","amount_eur","currency",
@@ -80,11 +82,13 @@ def load_tx() -> pd.DataFrame:
         return tx
     tx["date"] = pd.to_datetime(tx["date"], errors="coerce").dt.date
     tx["amount_eur"] = pd.to_numeric(tx["amount_eur"], errors="coerce").fillna(0.0)
-    tx["category"] = tx.get("category", "").astype(str)
+    if "category" not in tx.columns:
+        tx["category"] = ""
+    tx["category"] = tx["category"].astype(str)
     return tx
 
-# ============ Perioden / Kennzahlen ============
-def _period_range(period: str, ref: date) -> tuple[date, date, str]:
+# ------------------- Period & Kennzahlen -------------------
+def _period_range(period: str, ref: date) -> Tuple[date, date, str]:
     if period == "daily":
         s = e = ref; label = ref.strftime("%Y-%m-%d")
     elif period == "monthly":
@@ -98,7 +102,7 @@ def _period_range(period: str, ref: date) -> tuple[date, date, str]:
         qm = ((last_prev.month - 1)//3)*3 + 1
         s = date(last_prev.year, qm, 1)
         e = date(last_prev.year, qm+3, 1) - timedelta(days=1)
-        label = f"{s.year}-Q{(s.month-1)//3 + 1}"
+        label = f"{s.year}-Q{((s.month-1)//3)+1}"
     elif period == "yearly":
         s = date(ref.year-1, 1, 1); e = date(ref.year-1, 12, 31); label = str(s.year)
     else:
@@ -108,250 +112,173 @@ def _period_range(period: str, ref: date) -> tuple[date, date, str]:
 def _sum_spent(df: pd.DataFrame) -> float:
     return float((-df.loc[df["amount_eur"] < 0, "amount_eur"]).sum())
 
-def build_report(period: str, today: date | None = None) -> tuple[dict, pd.DataFrame]:
+def build_report(period: str, today: date | None = None) -> Dict:
     tx = load_tx()
-    if today is None:
-        today = datetime.now(TZ).date()
+    if today is None: today = datetime.now(TZ).date()
     s, e, label = _period_range(period, today)
-    mask = (tx["date"] >= s) & (tx["date"] <= e) if not tx.empty else []
-    df = tx.loc[mask].copy() if not tx.empty else pd.DataFrame(columns=tx.columns)
 
-    total_spent = _sum_spent(df) if not df.empty else 0.0
-    income      = float(df.loc[df["amount_eur"] > 0, "amount_eur"].sum()) if not df.empty else 0.0
-    net         = float(df["amount_eur"].sum()) if not df.empty else 0.0
+    if tx.empty:
+        df = pd.DataFrame(columns=["date","account_id","payee","amount_eur","currency","category","tags","note"])
+    else:
+        mask = (tx["date"] >= s) & (tx["date"] <= e)
+        df = tx.loc[mask, ["date","account_id","payee","amount_eur","currency","category","tags","note"]].copy()
 
-    # Kategorien für Diagramm
+    spent  = _sum_spent(df) if not df.empty else 0.0
+    income = float(df.loc[df["amount_eur"] > 0, "amount_eur"].sum()) if not df.empty else 0.0
+    net    = float(df["amount_eur"].sum()) if not df.empty else 0.0
+
+    # Kategorien-Chart erzeugen (kompakt)
     IMG_DIR.mkdir(parents=True, exist_ok=True)
-    images: list[Path] = []
+    images: List[Path] = []
     if not df.empty:
-        cats = df[df["amount_eur"] < 0].groupby("category", as_index=False)["amount_eur"].sum()
-        if not cats.empty:
-            cats["spent"] = -cats["amount_eur"]
-            # Horizontales Balkendiagramm
-            fig = plt.figure()
-            top = cats.sort_values("spent", ascending=False).head(10).sort_values("spent")
+        cat = df[df["amount_eur"] < 0].groupby("category", as_index=False)["amount_eur"].sum()
+        if not cat.empty:
+            cat["spent"] = -cat["amount_eur"]
+            top = cat.sort_values("spent", ascending=False).head(10).sort_values("spent")
+            fig = plt.figure(figsize=(6, 3))  # kompakt
             plt.barh(top["category"], top["spent"])
             plt.title(f"Top-Kategorien {period} {label}")
             plt.xlabel("EUR")
+            plt.tight_layout()
             p = IMG_DIR / f"{period}_{label}_categories.png"
-            fig.tight_layout(); fig.savefig(p); plt.close(fig)
+            fig.savefig(p, dpi=150)
+            plt.close(fig)
             images.append(p)
 
-        # Zeitreihe kumulierte Ausgaben (nur für >= monatlich)
-        if period in ("monthly","quarterly","yearly"):
-            fig = plt.figure()
-            day = df.groupby("date", as_index=False)["amount_eur"].sum()
-            day["cum_spent"] = (-day["amount_eur"].clip(upper=0)).cumsum()
-            plt.plot(day["date"], day["cum_spent"])
-            plt.title(f"Kumulierte Ausgaben {period} {label}")
-            plt.xlabel("Datum"); plt.ylabel("EUR")
-            p = IMG_DIR / f"{period}_{label}_timeseries.png"
-            fig.tight_layout(); fig.savefig(p); plt.close(fig)
-            images.append(p)
-
-    # einfache Bewertung
+    # Bewertung (einfach)
     savings_rate = (income + net) / income if income > 0 else 0.0
     rating = "✅ gut"
-    if income == 0 and total_spent > 0: rating = "⚠️ nur Ausgaben"
-    elif savings_rate < 0.05:          rating = "⚠️ sehr niedrig"
-    elif savings_rate < 0.15:          rating = "🟡 mittel"
+    if income == 0 and spent > 0: rating = "⚠️ nur Ausgaben"
+    elif savings_rate < 0.05:     rating = "⚠️ sehr niedrig"
+    elif savings_rate < 0.15:     rating = "🟡 mittel"
 
-    rep = {
+    return {
         "period": period, "label": label, "start": s, "end": e,
-        "spent": round(total_spent, 2), "income": round(income, 2), "net": round(net, 2),
-        "images": images, "rating": rating
+        "spent": round(spent, 2), "income": round(income, 2), "net": round(net, 2),
+        "df": df, "images": images, "rating": rating
     }
-    return rep, df
 
-# ============ PDF (ReportLab) ============
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
-from reportlab.lib.units import mm
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import (BaseDocTemplate, PageTemplate, Frame, Paragraph, Spacer,
-                                Table, TableStyle, Image, Flowable)
+# ------------------- PDF Rendering -------------------
+def _heading(elements, styles, rep):
+    # Name/Adresse (wenn gesetzt)
+    if PROFILE_NAME:
+        elements.append(Paragraph(f"<b>{PROFILE_NAME}</b>", styles["Normal"]))
+    if PROFILE_ADDRESS:
+        elements.append(Paragraph(PROFILE_ADDRESS, styles["Normal"]))
+    if PROFILE_NAME or PROFILE_ADDRESS:
+        elements.append(Spacer(1, 6))
 
-class Bar(Flowable):
-    """schmale farbige Leiste über dem Titel"""
-    def __init__(self, color=colors.HexColor("#2064ff"), height=14):
-        Flowable.__init__(self)
-        self.color = color
-        self.height = height
-        self.width = 0
-    def wrap(self, availWidth, availHeight):
-        self.width = availWidth
-        return availWidth, self.height
-    def draw(self):
-        c = self.canv
-        c.setFillColor(self.color)
-        c.setStrokeColor(self.color)
-        c.rect(0, 0, self.width, self.height, stroke=0, fill=1)
-
-def _styles():
-    styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name="TitleBig", parent=styles["Title"], fontSize=22, leading=26, alignment=1, spaceAfter=6))
-    styles.add(ParagraphStyle(name="Sub", parent=styles["Normal"], fontSize=11, leading=14, alignment=1, textColor=colors.HexColor("#666")))
-    styles.add(ParagraphStyle(name="H2", parent=styles["Heading2"], fontSize=14, leading=18, spaceBefore=8, spaceAfter=6))
-    styles.add(ParagraphStyle(name="CardTitle", parent=styles["Normal"], fontSize=10, textColor=colors.HexColor("#4c4c4c")))
-    styles.add(ParagraphStyle(name="CardValue", parent=styles["Heading2"], fontSize=16, leading=18))
-    styles.add(ParagraphStyle(name="Small", parent=styles["Normal"], fontSize=8, textColor=colors.HexColor("#777")))
-    styles.add(ParagraphStyle(name="Cell", parent=styles["Normal"], fontSize=8, leading=10))
-    return styles
-
-def _money(v: float) -> str:
-    return f"{v:,.2f} €".replace(",", "X").replace(".", ",").replace("X", ".")
-
-def _card(label, value, border=colors.black):
-    s = _styles()
-    box = Table(
-        [[Paragraph(label, s["CardTitle"])],
-         [Paragraph(_money(value), s["CardValue"])]],
-        colWidths=[70*mm], rowHeights=[8*mm, 14*mm], hAlign="LEFT",
+    # Titelblock
+    elements.append(Paragraph("<para alignment='center'><font size=22><b>Finanz-Report</b></font></para>", styles["Normal"]))
+    elements.append(Paragraph(
+        f"<para alignment='center'><font size=12>{rep['period'].capitalize()} – {rep['label']}</font></para>",
+        styles["Normal"])
     )
-    box.setStyle(TableStyle([
-        ("BOX", (0,0), (-1,-1), 1, border),
-        ("TOPPADDING", (0,0), (-1,-1), 2),
-        ("BOTTOMPADDING", (0,0), (-1,-1), 2),
-        ("ALIGN", (0,1), (-1,-1), "LEFT"),
-        ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
-    ]))
-    return box
+    elements.append(Paragraph(
+        f"<para alignment='center'><font size=10>{rep['start']} bis {rep['end']}</font></para>",
+        styles["Normal"])
+    )
+    elements.append(Spacer(1, 12))
 
-def _table_from_df(df: pd.DataFrame) -> Table:
-    s = _styles()
-    show_cols = ["date","account_id","payee","amount_eur","currency","category","tags","note"]
-    df2 = df.copy()
-    for c in show_cols:
-        if c not in df2.columns:
-            df2[c] = ""
-
-    df2["date"] = pd.to_datetime(df2["date"], errors="coerce").dt.date.astype(str)
-    df2["amount_eur"] = df2["amount_eur"].map(lambda x: _money(x) if pd.notnull(x) else "")
-
-    header = [Paragraph(col, s["Cell"]) for col in show_cols]
-    rows = []
-    for _, r in df2[show_cols].iterrows():
-        row = [Paragraph("" if pd.isna(r[c]) else str(r[c]), s["Cell"]) for c in show_cols]
-        rows.append(row)
-
-    data = [header] + rows
-
-    col_widths = [
-        20*mm,  # date
-        20*mm,  # account_id
-        28*mm,  # payee
-        20*mm,  # amount_eur
-        12*mm,  # currency
-        22*mm,  # category
-        25*mm,  # tags
-        28*mm,  # note
+def _cards(elements, rep):
+    # Drei Kennzahlen-Karten in einer Zeile
+    data = [
+        ["Ausgaben",  f"{rep['spent']:.2f} €"],
+        ["Einnahmen", f"{rep['income']:.2f} €"],
+        ["Netto",     f"{rep['net']:.2f} €"],
     ]
+    # Drei schmale Tabellen nebeneinander
+    widths = [6.2*cm, 6.2*cm, 6.2*cm]
+    row = []
+    for i, (label, val) in enumerate(data):
+        t = Table([[label],[f"<b>{val}</b>"]],
+                  colWidths=[widths[i]],
+                  rowHeights=[0.9*cm, 1.1*cm],
+                  style=TableStyle([
+                      ("BOX", (0,0), (-1,-1), 1, colors.black),
+                      ("LINEABOVE", (0,0), (-1,0), 2, [colors.HexColor("#1E88E5"), colors.HexColor("#2E7D32"), colors.black][i]),
+                      ("ALIGN", (0,1), (-1,1), "RIGHT"),
+                      ("RIGHTPADDING", (0,1), (-1,1), 8),
+                      ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
+                      ("FONTSIZE", (0,0), (-1,-1), 10),
+                  ]))
+        row.append(t)
+    elements.append(Table([row], colWidths=widths, style=TableStyle([])))
+    elements.append(Spacer(1, 12))
 
-    tbl = Table(data, colWidths=col_widths, hAlign="LEFT", repeatRows=1)
-    tbl.setStyle(TableStyle([
-        ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#2064ff")),
+def _tx_table(elements, df: pd.DataFrame, styles):
+    elements.append(Paragraph("<b>Buchungen</b>", styles["Heading2"]))
+    if df.empty:
+        elements.append(Paragraph("(Keine Buchungen)", styles["Normal"]))
+        elements.append(Spacer(1, 6))
+        return
+
+    show_cols = ["date","account_id","payee","amount_eur","currency","category","tags","note"]
+    table_data = [show_cols] + df[show_cols].astype(str).values.tolist()
+
+    col_widths = [2.2*cm, 2.6*cm, 3.2*cm, 2.2*cm, 1.6*cm, 2.8*cm, 3*cm, 4.5*cm]
+    t = Table(table_data, repeatRows=1, colWidths=col_widths)
+    t.setStyle(TableStyle([
+        ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#1976D2")),
         ("TEXTCOLOR", (0,0), (-1,0), colors.white),
-        ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
-        ("ALIGN", (0,0), (-1,0), "LEFT"),
-        ("FONTSIZE", (0,0), (-1,-1), 8),
-        ("LEADING", (0,1), (-1,-1), 9.5),
-        ("GRID", (0,0), (-1,-1), 0.5, colors.HexColor("#d0d0d0")),
+        ("FONTSIZE", (0,0), (-1,0), 9),
+        ("FONTSIZE", (0,1), (-1,-1), 8),
+        ("ALIGN", (0,0), (-1,0), "CENTER"),
         ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
-        ("ROWBACKGROUNDS", (0,1), (-1,-1), [colors.whitesmoke, colors.white]),
-        ("BOTTOMPADDING", (0,0), (-1,-1), 3),
-        ("TOPPADDING", (0,0), (-1,-1), 3),
+        ("GRID", (0,0), (-1,-1), 0.25, colors.black),
+        ("ROWBACKGROUNDS", (0,1), (-1,-1), [colors.whitesmoke, colors.Color(1,1,1)]),
     ]))
-    return tbl
+    elements.append(t)
+    elements.append(Spacer(1, 8))
+    ts = datetime.now(TZ).strftime("%Y-%m-%d %H:%M")
+    elements.append(Paragraph(f"<font size=8>Erstellt am {ts}</font>", styles["Normal"]))
+    elements.append(Spacer(1, 12))
 
-def render_pdf_statement(rep: dict, df_period: pd.DataFrame, pdf_path: Path, profile: dict | None = None):
-    profile = profile or {}
-    s = _styles()
+def _chart(elements, rep):
+    if not rep["images"]:
+        return
+    elements.append(Paragraph("<b>Diagramm</b>", getSampleStyleSheet()["Heading2"]))
+    img_path = rep["images"][0]
+    img = Image(str(img_path), width=14*cm, height=7*cm)  # kompakte Größe
+    img.hAlign = "CENTER"
+    elements.append(img)
 
-    margin = 15*mm
-    doc = BaseDocTemplate(str(pdf_path), pagesize=A4,
-                          leftMargin=margin, rightMargin=margin,
-                          topMargin=18*mm, bottomMargin=15*mm)
-    frame = Frame(doc.leftMargin, doc.bottomMargin, doc.width, doc.height, id="normal")
-    doc.addPageTemplates([PageTemplate(id="main", frames=[frame])])
+def render_pdf_statement(rep: Dict, out: Path) -> Path:
+    REPORT_DIR.mkdir(parents=True, exist_ok=True)
+    styles = getSampleStyleSheet()
+    # etwas straffere Normal-Schrift
+    styles["Normal"].fontName = "Helvetica"
+    styles["Normal"].fontSize = 10
 
-    elements = []
-    # Kopf
-    elements.append(Bar())
-    elements.append(Spacer(1, 8*mm))
-    if profile.get("name") or profile.get("address"):
-        elements.append(Paragraph(profile.get("name",""), s["Small"]))
-        elements.append(Paragraph(profile.get("address",""), s["Small"]))
-        elements.append(Spacer(1, 2*mm))
-    title = "Finanz-Report"
-    subtitle = f"{rep['period'].capitalize()} – {rep['label']}<br/>{rep['start']} bis {rep['end']}"
-    elements.append(Paragraph(title, s["TitleBig"]))
-    elements.append(Paragraph(subtitle, s["Sub"]))
-    elements.append(Spacer(1, 6*mm))
+    elements: List[Flowable] = []
+    _heading(elements, styles, rep)
+    _cards(elements, rep)
+    _tx_table(elements, rep["df"], styles)
+    _chart(elements, rep)
 
-    # Kennzahlen
-    cards = Table(
-        [[_card("Ausgaben", -abs(rep["spent"]), border=colors.HexColor("#1f6bff")),
-          _card("Einnahmen", rep["income"], border=colors.HexColor("#31a24c")),
-          _card("Netto", rep["net"], border=colors.black)]],
-        colWidths=[65*mm, 65*mm, 45*mm],
-        hAlign="LEFT",
-    )
-    cards.setStyle(TableStyle([("VALIGN", (0,0), (-1,-1), "MIDDLE")]))
-    elements.append(cards)
-    elements.append(Spacer(1, 8*mm))
-
-    # Tabelle
-    elements.append(Paragraph("Buchungen", s["H2"]))
-    if df_period is not None and not df_period.empty:
-        elements.append(_table_from_df(df_period))
-        elements.append(Spacer(1, 5*mm))
-        elements.append(Paragraph(f"Erstellt am {datetime.now(TZ).strftime('%Y-%m-%d %H:%M')}", s["Small"]))
-    else:
-        elements.append(Paragraph("(Keine Buchungen im Zeitraum.)", s["Small"]))
-
-    # Diagramm (erstes vorhandenes Bild)
-    img_path = None
-    if rep.get("images"):
-        img_path = rep["images"][0]
-    if img_path and Path(img_path).exists():
-        elements.append(Spacer(1, 10*mm))
-        elements.append(Paragraph("Diagramm", s["H2"]))
-        img = Image(str(img_path))
-        max_w = doc.width
-        img.drawWidth  = max_w
-        img.drawHeight = max_w * img.imageHeight / img.imageWidth
-        elements.append(img)
-
+    doc = SimpleDocTemplate(str(out), pagesize=A4,
+                            leftMargin=1.5*cm, rightMargin=1.5*cm,
+                            topMargin=1.5*cm, bottomMargin=1.5*cm)
     doc.build(elements)
+    return out
 
-# ============ HTML für E-Mail ============
-def render_html(rep: dict) -> str:
-    def fmt(v): return f"{v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-    return f"""
-    <h2>Finanz-Report ({rep['period']} – {rep['label']})</h2>
-    <p><b>Zeitraum:</b> {rep['start']} bis {rep['end']}</p>
-    <ul>
-      <li><b>Ausgaben</b>: {fmt(rep['spent'])} €</li>
-      <li><b>Einnahmen</b>: {fmt(rep['income'])} €</li>
-      <li><b>Netto</b>: {fmt(rep['net'])} €</li>
-      <li><b>Bewertung</b>: {rep['rating']}</li>
-    </ul>
-    <p>PDF im Anhang enthält Tabelle & Diagramm.</p>
-    """
-
-# ============ Mailversand ============
-def _write_debug(html: str):
-    DEBUG_DIR.mkdir(parents=True, exist_ok=True)
-    (DEBUG_DIR / "last_mail.html").write_text(html, encoding="utf-8")
-    (DEBUG_DIR / "last_mail.txt").write_text(re.sub(r"<[^>]+>", "", html), encoding="utf-8")
-
-def send_email(subject: str, html: str, attachments: list[Path]) -> None:
+# ------------------- E-Mail Versand -------------------
+def send_email(subject: str, html: str, attachments: List[Path]) -> None:
     if not (SMTP_USER and SMTP_PASS and EMAIL_FROM and EMAIL_TO):
-        raise RuntimeError("SMTP-Variablen fehlen (SMTP_USER, SMTP_PASS, EMAIL_FROM, EMAIL_TO).")
+        raise RuntimeError("SMTP Variablen fehlen (SMTP_USER / SMTP_PASS / EMAIL_FROM / EMAIL_TO).")
 
-    if not html.strip():
-        html = "<p>(Kein Inhalt)</p>"
-    _write_debug(html)
+    DEBUG_DIR.mkdir(parents=True, exist_ok=True)
+    # Fallback Plain-Text
+    if not html or not html.strip():
+        html = "<p>(Kein HTML-Inhalt)</p>"
+    plain = re.sub(r"<[^>]+>", "", html).strip() or "(Kein Inhalt)"
+
+    (DEBUG_DIR / "last_mail.html").write_text(html, encoding="utf-8")
+    (DEBUG_DIR / "last_mail.txt").write_text(plain, encoding="utf-8")
+
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+    from email.mime.application import MIMEApplication
 
     msg = MIMEMultipart("mixed")
     msg["Subject"] = subject
@@ -359,8 +286,8 @@ def send_email(subject: str, html: str, attachments: list[Path]) -> None:
     msg["To"] = ",".join(EMAIL_TO)
 
     alt = MIMEMultipart("alternative")
-    alt.attach(MIMEText(re.sub(r"<[^>]+>", "", html), "plain", "utf-8"))
-    alt.attach(MIMEText(html, "html", "utf-8"))
+    alt.attach(MIMEText(plain, "plain", "utf-8"))
+    alt.attach(MIMEText(html,  "html",  "utf-8"))
     msg.attach(alt)
 
     for p in attachments:
@@ -375,15 +302,41 @@ def send_email(subject: str, html: str, attachments: list[Path]) -> None:
         s.login(SMTP_USER, SMTP_PASS)
         s.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
 
-# ============ Orchestrierung ============
+# ------------------- HTML-Body (Kurz) -------------------
+def render_html(rep: Dict) -> str:
+    head = ""
+    if PROFILE_NAME: head += f"<p><b>{PROFILE_NAME}</b></p>"
+    if PROFILE_ADDRESS: head += f"<p>{PROFILE_ADDRESS}</p>"
+
+    cats_ul = ""
+    if not rep["df"].empty:
+        cats = rep["df"].query("amount_eur<0").groupby("category")["amount_eur"].sum().sort_values()
+        cats_ul = "".join(f"<li>{k}: {abs(v):.2f} €</li>" for k,v in cats.tail(5).items())
+    cats_ul = cats_ul or "<li>(keine)</li>"
+
+    return f"""
+    {head}
+    <h3>Finanz-Report – {rep['period']} – {rep['label']}</h3>
+    <p><b>Zeitraum:</b> {rep['start']} bis {rep['end']}</p>
+    <ul>
+      <li><b>Ausgaben:</b> {rep['spent']:.2f} €</li>
+      <li><b>Einnahmen:</b> {rep['income']:.2f} €</li>
+      <li><b>Netto:</b> {rep['net']:.2f} €</li>
+      <li><b>Bewertung:</b> {rep['rating']}</li>
+    </ul>
+    <p><b>Top-Kategorien (Ausgaben)</b></p>
+    <ul>{cats_ul}</ul>
+    """
+
+# ------------------- Orchestrierung -------------------
 def _daily_at_20_local() -> bool:
     return datetime.now(TZ).hour == 20
 
-def run(period: str, send: bool = True) -> None:
+def run(period: str, send: bool = False) -> None:
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     today = datetime.now(TZ).date()
 
-    periods: list[str] = []
+    periods: List[str] = []
     if period == "auto":
         if _daily_at_20_local(): periods.append("daily")
         if today.day == 1:
@@ -394,45 +347,30 @@ def run(period: str, send: bool = True) -> None:
         periods = [period]
 
     for per in periods:
-        rep, df = build_report(per, today=today)
+        rep = build_report(per, today=today)
 
-        # Dateiname & CSV für Perioden-Daten
-        label_safe = rep["label"]
-        if per == "daily":
-            csv_file = REPORT_DIR / f"report_{label_safe}_day.csv"
-            (df if not df.empty else pd.DataFrame()).to_csv(csv_file, index=False)
-        elif per == "monthly":
-            csv_file = REPORT_DIR / f"report_{label_safe}.csv"
-            if not csv_file.exists():
-                (df if not df.empty else pd.DataFrame()).to_csv(csv_file, index=False)
-        else:
-            csv_file = None
+        # Dateien bauen
+        pdf_path = REPORT_DIR / f"statement_{rep['label']}.pdf"
+        render_pdf_statement(rep, pdf_path)
 
-        # PDF erzeugen
-        pdf_name = {
-            "daily":     f"statement_{label_safe}.pdf",
-            "monthly":   f"statement_{label_safe}.pdf",
-            "quarterly": f"statement_{label_safe}.pdf",
-            "yearly":    f"statement_{label_safe}.pdf",
-        }[per]
-        pdf_path = REPORT_DIR / pdf_name
-        render_pdf_statement(rep, df, pdf_path, profile={"name": PROFILE_NAME, "address": PROFILE_ADDRESS})
+        # CSV beilegen
+        csv_path = REPORT_DIR / f"report_{rep['label']}.csv"
+        rep["df"].to_csv(csv_path, index=False)
 
-        # E-Mail
         subject = f"Finanzen – {per} – {rep['label']} (Ausgaben {rep['spent']:.2f} €)"
         html = render_html(rep)
-        atts = [pdf_path] + ([csv_file] if csv_file else [])
+        atts = [pdf_path, csv_path]
+
+        print(f"[REPORT] {per} {rep['label']} | spent={rep['spent']:.2f} | atts={len(atts)}")
         if send:
             send_email(subject, html, atts)
             print(f"[MAIL] gesendet an: {EMAIL_TO}")
-        print(f"[REPORT] {per} {rep['label']} | spent={rep['spent']:.2f} | atts={len(atts)}")
 
-# ============ CLI ============
+# ------------------- CLI -------------------
 if __name__ == "__main__":
     import argparse
-    ap = argparse.ArgumentParser(description="Finanz-Reports per E-Mail senden")
+    ap = argparse.ArgumentParser(description="Finanz-Reports (PDF/CSV) per E-Mail senden")
     ap.add_argument("period", choices=["daily","monthly","quarterly","yearly","auto"], help="Zeitraum")
-    ap.add_argument("--send", action="store_true", help="E-Mail wirklich senden (sonst nur erzeugen)")
+    ap.add_argument("--send", action="store_true", help="E-Mail wirklich senden (sonst nur Dateien erzeugen)")
     args = ap.parse_args()
     run(args.period, send=args.send)
-    
