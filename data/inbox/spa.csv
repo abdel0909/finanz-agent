@@ -2,3 +2,4 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 
 2025-08-25,Bar,Vegemarkt,-10.00,EUR,VegeMarket,Vege,"Muss ich aufhören ",,csv
 2025-08-30,Bar,Vegemarkt,-5.00,EUR,VegeMarket,Vege,"Muss ich aufhören ",,csv
+2025-08-31,Bar,Kiosk,-1.50,EUR,Kiosk,Vege Blätter ,"Muss ich aufhören ",,csv
