@@ -207,11 +207,20 @@ def _auto_col_widths(df, headers, avail_width):
 
 class Bar(Flowable):
     def __init__(self, color=colors.HexColor("#2064ff"), height=14):
-        Flowable.__init__(self); self.c=color; self.h=height
+        Flowable.__init__(self)
+        self.color = color
+        self.height = height
+        self.width = 0  # wird in wrap gesetzt
+
+    def wrap(self, availWidth, availHeight):
+        self.width = availWidth
+        return availWidth, self.height
+
     def draw(self):
-        c=self.canv; w=self._availWidth
-        c.setFillColor(self.c); c.setStrokeColor(self.c)
-        c.rect(0, 0, w, self.h, stroke=0, fill=1)
+        c = self.canv
+        c.setFillColor(self.color)
+        c.setStrokeColor(self.color)
+        c.rect(0, 0, self.width, self.height, stroke=0, fill=1)
 
 def render_pdf_statement(rep: dict, out_pdf: Path, profile: dict | None = None):
     df = rep["df"].copy()
