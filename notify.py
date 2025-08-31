@@ -174,6 +174,24 @@ def build_report(period: str, today: date | None = None) -> dict:
 
 # ====================== PDF Rendering ======================
 # ====================== PDF Rendering ======================
+from reportlab.platypus import Table, TableStyle, Paragraph
+from reportlab.lib import colors
+
+def _kpi_box(label: str, value: float, border_color=colors.black):
+    """Kästchen für KPI-Werte im PDF"""
+    return Table(
+        [[
+            Paragraph(label, styles["Small"]),
+            Paragraph(f"<b>{value:,.2f} €</b>".replace(",", "X").replace(".", ",").replace("X", "."),
+                      styles["Normal"])
+        ]],
+        colWidths=[35*mm, 25*mm],
+        style=TableStyle([
+            ("BOX", (0,0), (-1,-1), 1, border_color),
+            ("ALIGN", (0,0), (-1,-1), "CENTER"),
+            ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
+        ])
+    )
 def render_pdf_statement(rep: dict, out_pdf: Path, profile: dict) -> Path:
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
 
