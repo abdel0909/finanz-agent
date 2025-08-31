@@ -4,3 +4,4 @@ openpyxl>=3.1.0
 matplotlib
 msal
 requests
+reportlab
