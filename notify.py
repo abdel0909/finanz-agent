@@ -47,8 +47,8 @@ EMAIL_TO    = [a.strip() for a in os.getenv("bouardjaa@gmail.com", SMTP_USER).sp
 
 # Profil für PDF-Kopf
 PROFILE = {
-    "name":    os.getenv("PROFILE_NAME", "Dein Name"),
-    "address": os.getenv("PROFILE_ADDRESS", "Straße 1, 12345 Stadt"),
+    "name":    os.getenv("PROFILE_NAME", "Abdelkader Bouardja "),
+    "address": os.getenv("PROFILE_ADDRESS", "Römerstr 49, 59379 Selm"),
 }
 
 # Farben / Styles
