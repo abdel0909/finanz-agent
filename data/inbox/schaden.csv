@@ -1,1 +1,2 @@
 date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
+2025-09-01,Giro_DE1234,Ludwig Fresenius Schule ,-27.10,EUR,Bürette,Ludwig Fresenius Schule,Bürette,,csv
