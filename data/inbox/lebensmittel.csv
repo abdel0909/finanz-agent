@@ -1,6 +1,6 @@
 date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-08-24,Giro_DE1234,ALDI,-0.00,EUR,Lebensmittel,supermarkt,"Wocheneinkauf",,csv
-2025-08-25,Giro_DE1234,LIDL,-6.63,EUR,Lebensmittel,supermarkt,"Brötchen, Käse, ProteinDrink",,csv
+2025-08-25,Giro_DE1234,LIDL,-6.63,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 2025-08-25,Giro_DE1234,kaffee,-2.00,EUR,Lebensmittel,supermarkt,"Espresso",,csv
 2025-08-25,Giro_DE1234,Kiosk,-1.80,EUR,Lebensmittel,supermarkt,"Fanta",,csv
 2025-08-26,Giro_DE1234,LIDL,-11.69,EUR,Lebensmittel,Supermarkt,"Wocheneinkauf ",,csv
