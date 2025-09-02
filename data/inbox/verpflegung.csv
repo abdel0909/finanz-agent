@@ -1,4 +1,4 @@
 date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-08-25,Bar,McDonalds,-0.00,EUR,Verpflegung,essen,Fastfood,,csv
 2025-08-27,Kreditkarte_Visa,Italienisches Restaurant,-0.00,EUR,Verpflegung,essen,Abendessen mit Freunden,,csv
-2025-09-02,Kreditkarte_Visa,McDonalds,-8.90,EUR,Verpflegung,essen,Schnelles Essen,,csv
+2025-09-02,Kreditkarte_Visa,McDonalds,-0.00,EUR,Verpflegung,essen,Schnelles Essen,,csv
