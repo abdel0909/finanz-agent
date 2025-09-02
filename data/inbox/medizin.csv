@@ -1,0 +1,2 @@
+date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
+2025-09-02,Giro_DE1234,Apotheke ,-5.00,EUR,Apotheke,Medikamente,"Entzündung",,csv
