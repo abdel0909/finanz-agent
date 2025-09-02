@@ -3,11 +3,11 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-08-25,Giro_DE1234,LIDL,-6.63,EUR,Lebensmittel,supermarkt,"Brötchen, Käse, ProteinDrink",,csv
 2025-08-25,Giro_DE1234,kaffee,-2.00,EUR,Lebensmittel,supermarkt,"Espresso",,csv
 2025-08-25,Giro_DE1234,Kiosk,-1.80,EUR,Lebensmittel,supermarkt,"Fanta",,csv
-2025-08-26,Giro_DE1234,LIDL,-11.69,EUR,Lebensmittel,Supermarkt,"Banana , Eisbergsalat , Tomaten ,Broccoli , Reis ,Mayonnaise ,Spargel ,Papiertragetasche ",,csv
-2025-08-26,Giro_DE1234,LIDL,-24.59,EUR,Lebensmittel,Supermarkt ,"Steinofenpizza , Zaziki ,Kartofelsalat ,Eier ,2x Nudeln ,Cornichon scharf, ,Thunfisch , Rosenbrötchen , Berliner 10er , Backpapier , Putzschwamm",,csv
+2025-08-26,Giro_DE1234,LIDL,-11.69,EUR,Lebensmittel,Supermarkt,"Wocheneinkauf ",,csv
+2025-08-26,Giro_DE1234,LIDL,-24.59,EUR,Lebensmittel,Supermarkt ,"Wocheneinkauf",,csv
 2025-08-26,Giro_DE1234,Philipps,-17.62,EUR,Lebensmittel,supermarkt,"Frischhaltedosen",,csv
 2025-08-27,Giro_DE1234,kaffee,-1.70,EUR,Lebensmittel,kaffeteria,"Espresso",,csv
-2025-08-27,Giro_DE1234,LIDL,-12.00,EUR,Lebensmittel,Supermarkt ,"Wasser , Apfelschorle, Dorum , Schnitlauch ",,csv
+2025-08-27,Giro_DE1234,LIDL,-12.00,EUR,Lebensmittel,Supermarkt ,"Getränke ",,csv
 2025-08-28,Giro_DE1234,kaffee,-1.80,EUR,Lebensmittel,kaffeteria,"Espresso",,csv
 2025-08-29,Giro_DE1234,kaffee,-1.80,EUR,Lebensmittel,Kaffeteria,"Espresso",,csv
 2025-08-29,Giro_DE1234,LIDL,-33.67,EUR,Lebensmittel,supermarkt,"Wocheneinkauf",,csv
