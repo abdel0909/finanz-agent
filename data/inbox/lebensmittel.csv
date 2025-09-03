@@ -16,3 +16,5 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-09-01,Giro_DE1234,LIDL,-11.37,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 2025-09-02,Giro_DE1234,LIDL,-8.03,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 2025-09-02,Giro_DE1234,kaffee,-1.80,EUR,Lebensmittel,Kaffeteria,"Espresso",,csv
+2025-09-03,Bar,Aral,-3.99EUR,Lebensmittel,Aral,"kaugummi",,csv
+2025-09-03,Giro_DE1234,kaffee,-1.80,EUR,Lebensmittel,Kaffeteria,"Espresso",,csv
