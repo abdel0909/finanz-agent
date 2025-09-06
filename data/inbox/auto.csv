@@ -1,2 +1,4 @@
 date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-09-01,Giro_DE1234,Westfallen ,-30.00,EUR,Westfallen Tankstelle,super,"Tanken",,csv
+2025-09-06,Giro_DE1234,Waschanlage ,-5.00,EUR,Westfallen Waschanlage,Waschen,"Waschen",,csv
+
