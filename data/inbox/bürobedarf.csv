@@ -1,2 +1,2 @@
 date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
-2025-09-12,Giro_DE1234,Action,-0.00,EUR,Bürobedarf,supermarkt,"Heft",,csv
+2025-09-12,Giro_DE1234,Action,-1.99,EUR,Bürobedarf,supermarkt,"Heft",,csv
