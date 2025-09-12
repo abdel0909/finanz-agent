@@ -3,3 +3,4 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 
 2025-09-10,Kreditkarte,DM,-5.95,EUR,Verpflegung,Hygiene,Pflege,,csv
 2025-09-10,Kreditkarte,Freseur,-17.00,EUR,Verpflegung,Hygiene,Körperpflege,,csv
+2025-09-12,Kreditkarte,DM,-4.78,EUR,Verpflegung,Hygiene,Bände,,csv
