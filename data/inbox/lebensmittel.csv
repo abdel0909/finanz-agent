@@ -43,4 +43,4 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-09-15,Giro_DE1234,LIDL,-8.61,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 2025-09-17,Giro_DE1234,kaffee,-3.60,EUR,Lebensmittel,Kaffeteria,"Espresso",,csv
 2025-09-17,Giro_DE1234,LIDL,-20.38,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
-2025-09-17,Giro_DE1234,kaffee,-1.80,EUR,Lebensmittel,Kaffeteria,"Espresso",,csv
+2025-09-1,Giro_DE1234,kaffee,-3.60,EUR,Lebensmittel,Kaffeteria,"Espresso",,csv
