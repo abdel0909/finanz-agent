@@ -51,4 +51,5 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-09-20,Giro_DE1234,UCAR,-32.25,EUR,Lebensmittel,supermarkt,"Wocheneinkauf",,csv
 2025-09-20,Giro_DE1234,kaffee,-4.50,EUR,Lebensmittel,Kaffeteria,"Espresso",,csv
 2025-09-20,Giro_DE1234,Backwerk,-11.00,EUR,Lebensmittel,Kaffeteria,"Frühstück",,csv
+2025-09-21,Giro_DE1234,Backwerk,-00.00,EUR,Lebensmittel,Kaffeteria,"Frühstück",,csv
 
