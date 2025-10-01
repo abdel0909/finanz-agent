@@ -65,3 +65,4 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 
 2025-09-29,Giro_DE1234,kaffee,-5.60,EUR,Lebensmittel,Kaffeteria,"Espresso",,csv
 2025-09-30,Giro_DE1234,kaffee,-3.60,EUR,Lebensmittel,Kaffeteria,"Espresso",,csv
+2025-10-01,Giro_DE1234,kaffee,-1.80,EUR,Lebensmittel,Kaffeteria,"Espresso",,csv
