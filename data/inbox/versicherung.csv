@@ -1,3 +1,4 @@
 date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-09-01,Giro_DE1234,DirektVersicherung,-1600.00,EUR,Versicherung,Teilkasko , 1J Beitrag,,csv
 2025-09-01,Giro_DE1234,Avocard,-12.00,EUR,Versicherung,Rechtschutz , Beitrag ,,csv
+2025-10-01,Giro_DE1234,Avocard,-12.00,EUR,Versicherung,Rechtschutz , Beitrag ,,csv
