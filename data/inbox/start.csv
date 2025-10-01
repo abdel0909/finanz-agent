@@ -1,4 +1,4 @@
 date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-08-01,Giro_DE1234,Startkapital,4.511,73,EUR,Sonstiges,start,,"init",csv
 2025-08-01,Kreditkarte_Visa,Startkapital,491,00,EUR,Sonstiges,start,,"init",csv
-2025-08-01,Bar,Startkapital,40,00,EUR,Sonstiges,start,,"init",csv
+2025-08-01,Bar,Startkapital,40.00,EUR,Sonstiges,start,,"init",csv
