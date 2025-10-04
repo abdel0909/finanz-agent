@@ -1,4 +1,4 @@
 date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-09-02,Giro_DE1234,Apotheke ,-5.00,EUR,Apotheke,Medikamente,"Entzündung",,csv
 2025-09-02,Giro_DE1234,Apotheke ,-26.99,EUR,Apotheke,Medikamente,"Erkältung",,csv
-2025-10.04,Giro_DE1234,Apotheke ,-20.00,EUR,Apotheke,Medikamente,"Erkältung",,csv
+2025-10-04,Giro_DE1234,Apotheke ,-20.00,EUR,Apotheke,Medikamente,"Erkältung",,csv
