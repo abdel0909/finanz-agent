@@ -73,3 +73,4 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-10-04,Giro_DE1234,Rewe,-45,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 2025-10-04,Giro_DE1234,UCAR,-38.00,EUR,Lebensmittel,supermarkt,"Wocheneinkauf",,csv
 2025-10-04,Giro_DE1234,Backwerk,-4.00,EUR,Lebensmittel,Kaffeteria,"Frühstück",,csv
+2025-10-06,Giro_DE1234,kaffee,-1.80,EUR,Lebensmittel,Kaffeteria,"Espresso",,csv
