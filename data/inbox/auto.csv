@@ -8,3 +8,4 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-09-27,Giro_DE1234,Westfallen ,-30.00,EUR,Aral Tankstelle,super,"Tanken",,csv
 2025-10-02,Giro_DE1234,Westfallen ,-41.00,EUR,Aral Tankstelle,super,"Tanken",,csv
 2025-10-05,Giro_DE1234,Westfallen ,-21.00,EUR,Aral Tankstelle,super,"Tanken",,csv
+2025-10-05,Giro_DE1234,Westfallen ,-20.00,EUR,Aral Tankstelle,super,"Tanken",,csv
