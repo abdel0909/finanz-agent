@@ -8,3 +8,4 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-09-16,Kreditkarte,Hbf,-1.50,EUR,Verpflegung,Toiletten Nützung,Toilette,,csv
 2025-09-26,Kreditkarte,DM,-4.00,EUR,Verpflegung,Hygiene,Pflege,,csv
 2025-10-11,Kreditkarte,Action,-4.00,EUR,Verpflegung,Hygiene,Pflege +,,csv
+2025-10-13,Kreditkarte,Freseur,-34.00,EUR,Verpflegung,Hygiene,Körperpflege,,csv
