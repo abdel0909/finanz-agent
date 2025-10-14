@@ -87,3 +87,4 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-10.11,Giro_DE1234,LIDL,-42.24,EUR,Lebensmittel,supermarkt,"Wocheneinkauf",,
 
 2025-10-13,Giro_DE1234,Lidl,-11.76,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
+2025-10-14,Giro_DE1234,UCAR,-46.00,EUR,Lebensmittel,supermarkt,"Wocheneinkauf",,csv
