@@ -1,2 +1,3 @@
 date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-10-13,Giro_DE1234,Tako ,-34.00,EUR,Tako,klamotten,"Hosen",,csv
+2025-10-13,Giro_DE1234,kik ,-34.00,EUR,kik,klamotten,"unterhosen",,csv
