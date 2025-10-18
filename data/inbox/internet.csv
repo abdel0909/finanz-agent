@@ -1,3 +1,9 @@
 date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-09-17,Giro_DE1234,1&1,-42.00,EUR,1&1,Internet,Wlan für mehr Aktevität,,csv
 2025-09-17,Giro_DE1234,1&1,-7.99,EUR,1&1,Internet und Telefon,Erreichbarkeit,,csv
+2025-10-18,Giro_DE1234,1&1,-42.00,EUR,1&1,Internet,Wlan für mehr Aktevität,,csv
+2025-10-19,Giro_DE1234,1&1,-7.99,EUR,1&1,Internet und Telefon,Erreichbarkeit,,csv
+2025-11-18,Giro_DE1234,1&1,-42.00,EUR,1&1,Internet,Wlan für mehr Aktevität,,csv
+2025-11-18,Giro_DE1234,1&1,-7.99,EUR,1&1,Internet und Telefon,Erreichbarkeit,,csv
+2025-12-18,Giro_DE1234,1&1,-42.00,EUR,1&1,Internet,Wlan für mehr Aktevität,,csv
+2025-12-18,Giro_DE1234,1&1,-7.99,EUR,1&1,Internet und Telefon,Erreichbarkeit,,csv
