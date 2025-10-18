@@ -1,3 +1,5 @@
 date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-09-01,Giro_DE1234,UKBS ,-637.00,EUR,Miete,wohnen,Monatliche Beitrag,,csv
 2025-10-01,Giro_DE1234,UKBS ,-637.00,EUR,Miete,wohnen,Monatliche Beitrag,,csv
+2025-11-01,Giro_DE1234,UKBS ,-637.00,EUR,Miete,wohnen,Monatliche Beitrag,,csv
+2025-12-01,Giro_DE1234,UKBS ,-637.00,EUR,Miete,wohnen,Monatliche Beitrag,,csv
