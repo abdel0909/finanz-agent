@@ -11,3 +11,8 @@ Ziel: Ein-/Ausgaben verarbeiten, automatisch kategorisieren und monatlich auswer
 Siehe Repo-Baum. Lege Bank‑CSV‑Exporte in `data/inbox/` ab.
 
 ## Start (lokal)
+rm -f Budget.xlsx
+
+python finanzen_agent.py
+
+python notify.py daily --send
