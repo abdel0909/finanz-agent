@@ -27,3 +27,4 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-10-13,Bar,Kiosk,-6.50,EUR,Kiosk,Vege Blätter ,"Muss aufhören ",,csv
 2025-10-12,Bar,Vegemarkt,-50.00,EUR,VegeMarket,Vege,"Muss aufhören ",,csv
 2025-10-18,Bar,Kiosk,-6.50,EUR,Kiosk,Vege Blätter ,"Muss aufhören ",,csv
+2025-10-21,Bar,Kiosk,-1.50,EUR,Kiosk,Vege Blätter ,"Muss aufhören ",21-10-2025,csv
