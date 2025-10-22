@@ -1,3 +1,4 @@
 date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-09-12,Giro_DE1234,Action,-1.99,EUR,Bürobedarf,supermarkt,"Heft",,csv
 2025-09-13,Giro_DE1234,Philips,-2.38,EUR,Bürobedarf,supermarkt,"Karteikarten",,csv
+2025-10-22,Giro_DE1234,Müller,-19.00,EUR,Bürobedarf,supermarkt,"schreibware",,csv
