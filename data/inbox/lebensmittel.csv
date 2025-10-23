@@ -95,3 +95,4 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-10-19,Giro_DE1234,kaffee,-9.00,EUR,Lebensmittel,supermarkt,"kuchen",,csv
 2025-10-21,Giro_DE1234,Lidl,-14.40,EUR,Lebensmittel,supermarkt," T:20-10-2025 ",,csv
 2025-10-22,Giro_DE1234,Kaufland,-27.00,EUR,Lebensmittel,supermarkt," Fehlende Artikel ",,csv
+2025-10-23,Giro_DE1234,Lidl,-10.19,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
