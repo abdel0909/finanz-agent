@@ -11,3 +11,4 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-10-13,Kreditkarte,Freseur,-34.00,EUR,Verpflegung,Hygiene,Körperpflege,,csv
 2025-10-22,Kreditkarte,Müller,-2.00,EUR,Verpflegung,Hygiene,Pflege +,,csv
 2025-10-29,Kreditkarte,Freseur,-17.00,EUR,Verpflegung,Hygiene,Körperpflege,,csv
+2025-11-01,Kreditkarte,Rossmann,-5.50.00,EUR,Verpflegung,Hygiene,Schampoo,,csv
