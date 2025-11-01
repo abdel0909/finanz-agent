@@ -16,3 +16,5 @@ rm -f Budget.xlsx
 python finanzen_agent.py
 
 python notify.py daily --send
+
+python notify.py monthly --send
