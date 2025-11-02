@@ -1,15 +1,16 @@
 date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
-2025-09-01,Giro_DE1234,Westfallen ,-30.00,EUR,Westfallen Tankstelle,super,"Tanken",,csv
-2025-09-06,Giro_DE1234,Waschanlage ,-5.00,EUR,Westfallen Waschanlage,Waschen,"Waschen",,csv
-2025-09-14,Giro_DE1234,Westfallen ,-40.00,EUR,Westfallen Tankstelle,super,"Tanken",,csv
-2025-09-16,Giro_DE1234,Messe ,-16.00,EUR,parkplatz Messe ,Parken,"Parkplatz",,csv
-2025-09-14,Giro_DE1234,Westfallen ,-50.00,EUR,Westfallen Tankstelle,super,"Tanken",,csv
-2025-09-23,Giro_DE1234,Westfallen ,-30.00,EUR,Aral Tankstelle,super,"Tanken",,csv
-2025-09-27,Giro_DE1234,Westfallen ,-30.00,EUR,Aral Tankstelle,super,"Tanken",,csv
-2025-10-02,Giro_DE1234,Westfallen ,-41.00,EUR,Aral Tankstelle,super,"Tanken",,csv
-2025-10-05,Giro_DE1234,Westfallen ,-21.00,EUR,Aral Tankstelle,super,"Tanken",,csv
-2025-10-08,Giro_DE1234,Werkstatt ,-20.00,EUR,werkstatt,super,"öl",,csv
-2025-10-11,Giro_DE1234,Waschanlage ,-10.00,EUR,Westfallen Waschanlage,Waschen,"Waschen",,csv
-2025-10-14,Giro_DE1234,Westfallen ,-50.00,EUR,Aral Tankstelle,super,"Tanken",,csv
-2025-10-25,Giro_DE1234,Autohaus selm ,-40.00,EUR,Autohaus Selm,super,"reifen",,csv
-2025-10-29,Giro_DE1234,Westfallen ,-50.00,EUR,Aral Tankstelle,super,"Tanken",,csv
+2025-09-01,Giro_DE1234,Westfallen ,-30.00,EUR,Auto,super,"Tanken",,csv
+2025-09-06,Giro_DE1234,Waschanlage ,-5.00,EUR,Auto,Waschen,"Waschen",,csv
+2025-09-14,Giro_DE1234,Westfallen ,-40.00,EUR,Auto,super,"Tanken",,csv
+2025-09-16,Giro_DE1234,Messe ,-16.00,EUR,Auto ,Parken,"Parkplatz",,csv
+2025-09-14,Giro_DE1234,Westfallen ,-50.00,EUR,Auto,super,"Tanken",,csv
+2025-09-23,Giro_DE1234,Westfallen ,-30.00,EUR,Auto,super,"Tanken",,csv
+2025-09-27,Giro_DE1234,Westfallen ,-30.00,EUR,Auto,super,"Tanken",,csv
+2025-10-02,Giro_DE1234,Westfallen ,-41.00,EUR,Auto,super,"Tanken",,csv
+2025-10-05,Giro_DE1234,Westfallen ,-21.00,EUR,Auto,super,"Tanken",,csv
+2025-10-08,Giro_DE1234,Werkstatt ,-20.00,EUR,Auto,super,"öl",,csv
+2025-10-11,Giro_DE1234,Waschanlage ,-10.00,EUR,Auto,Waschen,"Waschen",,csv
+2025-10-14,Giro_DE1234,Westfallen ,-50.00,EUR,Auto,super,"Tanken",,csv
+2025-10-25,Giro_DE1234,Autohaus selm ,-40.00,EUR,Auto,super,"reifen",,csv
+2025-10-29,Giro_DE1234,Aral ,-50.00,EUR,Auto,super,"Tanken",,csv
+2025-11-02,Giro_DE1234,Westfallen ,-39.00,EUR,Auto,super,"Tanken",,csv
