@@ -112,5 +112,5 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-10-31,Giro_DE1234,Lidl,-11.80,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 2025-11-01,Giro_DE1234,Backwerk,-10.00,EUR,Lebensmittel,Kaffeteria,"kuchen",,csv
 2025-11-01,Giro_DE1234,Rossmann,-8.80,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
-
+2025-10-30,Giro_DE1234,Rewe,-4.36,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 
