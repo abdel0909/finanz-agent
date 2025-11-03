@@ -29,7 +29,7 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-09-08,Giro_DE1234,LIDL,-11.85,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 2025-09-09,Giro_DE1234,kaffee,-1.80,EUR,Lebensmittel,Kaffeteria,"Espresso",,csv
 2025-09-09,Giro_DE1234,LIDL,-10.44,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
-2025-09-10,Giro_DE1234,Rewe,-10.44,EUR,Haushalt,supermarkt,"Hygiene Produkte",,csv
+2025-09-10,Giro_DE1234,Rewe,-10.44,EUR,Lebensmittel,supermarkt,"Hygiene Produkte",,csv
 2025-09-11,Giro_DE1234,kaffee,-1.80,EUR,Lebensmittel,Kaffeteria,"Espresso",,csv
 2025-09-11,Giro_DE1234,LIDL,-12.30,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 2025-09-11,Giro_DE1234,Rewe,-4.00,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
