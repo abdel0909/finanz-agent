@@ -14,3 +14,4 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-10-25,Giro_DE1234,Autohaus selm ,-40.00,EUR,Auto,super,"reifen",,csv
 2025-10-29,Giro_DE1234,Aral ,-50.00,EUR,Auto,super,"Tanken",,csv
 2025-11-02,Giro_DE1234,Westfallen ,-39.00,EUR,Auto,super,"Tanken",,csv
+2025-11-03,Giro_DE1234,Waschanlage ,-5.00,EUR,Auto,Waschen,"Waschen",,csv
