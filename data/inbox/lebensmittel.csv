@@ -91,7 +91,7 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-10-15,Giro_DE1234,Lidl,-15.00,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 2025-10-17,Giro_DE1234,Lidl,-3.53,EUR,Lebensmittel,supermarkt,"16-10-2025 ",,csv
 2025-10-18,Giro_DE1234,EDEKA,-31.00,EUR,Lebensmittel,supermarkt," ",,csv
-2025-10-18,Giro_DE1234,Lidl,-14.40,EUR,Lebensmittel,supermarkt,"17-10-2025 ",,csvn
+2025-10-18,Giro_DE1234,Lidl,-14.40,EUR,Lebensmittel,supermarkt,"17-10-2025 ",,csv
 2025-10-19,Giro_DE1234,kaffee,-9.00,EUR,Lebensmittel,supermarkt,"kuchen",,csv
 2025-10-21,Giro_DE1234,Lidl,-14.40,EUR,Lebensmittel,supermarkt," T:20-10-2025 ",,csv
 2025-10-22,Giro_DE1234,Kaufland,-27.00,EUR,Lebensmittel,supermarkt," Fehlende Artikel ",,csv
@@ -113,4 +113,7 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-11-01,Giro_DE1234,Backwerk,-10.00,EUR,Lebensmittel,Kaffeteria,"kuchen",,csv
 2025-11-01,Giro_DE1234,Rossmann,-8.80,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 2025-10-30,Giro_DE1234,Rewe,-4.36,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
+2025-11-03,Giro_DE1234,Lidl,-46.36,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
+2025-11-03,Giro_DE1234,kaffee,-5.60,EUR,Lebensmittel,Kaffeeteria,"Espresso",,csv
+
 
