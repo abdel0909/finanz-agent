@@ -1,2 +1,3 @@
 date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-09-01,Visa,Spende ,-100.00,EUR,Spende ,Familie,hilfe,,csv
+2025-09-01,Visa,Spende ,-150.00,EUR,Spende ,Familie,hilfe,,csv
