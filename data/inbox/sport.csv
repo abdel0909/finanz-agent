@@ -1,5 +1,6 @@
 date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
-2025-08-30,Giro_DE1234,Clever Fit,-34.00,EUR,Beitrag Sport,sport,für meine Gesundheit,,csv
-2025-10-01,Giro_DE1234,Clever Fit,-34.00,EUR,Beitrag Sport,sport,für meine Gesundheit,,csv
-2025-11-01,Giro_DE1234,Clever Fit,-34.00,EUR,Beitrag Sport,sport,für meine Gesundheit,,csv
-2025-12-01,Giro_DE1234,Clever Fit,-34.00,EUR,Beitrag Sport,sport,für meine Gesundheit,,csv
+2025-08-30,Giro_DE1234,Clever Fit,-34.00,EUR,Beitrag Sport,sport, Gesundheit,,csv
+2025-10-01,Giro_DE1234,Clever Fit,-34.00,EUR,Beitrag Sport,sport,Gesundheit,,csv
+2025-11-01,Giro_DE1234,Clever Fit,-34.00,EUR,Beitrag Sport,sport,Gesundheit,,csv
+2025-11-04,Giro_DE1234,JSKY,-3.00,EUR,Beitrag Sport,sport,Ausrüstung,,csv
+2025-12-01,Giro_DE1234,Clever Fit,-34.00,EUR,Beitrag Sport,sport,Gesundheit,,csv
