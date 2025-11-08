@@ -4,3 +4,6 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-09-13,Giro_DE1234,Philips,-2.98,EUR,Haushaltsgerät,supermarkt,"Lunchbox",,csv
 2025-10-17,Giro_DE1234,JYSK,-105.00,EUR,Haushaltsgerät,Dänischebetten,"Schreibtisch + ",16-10-2025,csv
 2025-11-03,Giro_DE1234,Philips,-45.00,EUR,Haushaltsgerät,supermarkt,"Lunchbox",,csv
+2025-11-05,Giro_DE1234,Philips,-24.00,EUR,Haushaltsgerät,supermarkt,"Lunchbox",,csv
+2025-11-04,Giro_DE1234,Tedi,-4.00,EUR,Haushaltsgerät,supermarkt,"Lunchbox",,csv
+2025-11-03,Giro_DE1234,Edeka,-10.00,EUR,Haushaltsgerät,supermarkt,"Lunchbox",,csv
