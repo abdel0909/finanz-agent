@@ -129,7 +129,8 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-11-06,Giro_DE1234,Netto,-5.93,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 2025-11-07,Giro_DE1234,Lidl,-16.92,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 2025-11-08,Giro_DE1234,Lidl,-4.75,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
-
+2025-11-14,Giro_DE1234,Rewe,-3.27,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
+2025-11-14,Giro_DE1234,kaffee,-1.80,EUR,Lebensmittel,Kaffeeteria,"Espresso",,csv
 
 
 
