@@ -127,13 +127,18 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-11-06,Giro_DE1234,Lidl,-9.45,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 2025-11-06,Giro_DE1234,Rewe,-3.21,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 2025-11-06,Giro_DE1234,Netto,-5.93,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
+2025-11-07,Giro_DE1234,kaffee,-31.20,EUR,Lebensmittel,Kaffeeteria,"Espresso",Hosselmann,csv
 2025-11-07,Giro_DE1234,Lidl,-16.92,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 2025-11-08,Giro_DE1234,Lidl,-4.75,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 2025-11-14,Giro_DE1234,Rewe,-3.27,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 2025-11-14,Giro_DE1234,kaffee,-1.80,EUR,Lebensmittel,Kaffeeteria,"Espresso",,csv
-
-
-
+2025-11-27,Giro_DE1234,Rewe,-21.21,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
+2025-11-28,Giro_DE1234,Rewe,-6.76,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
+2025-11-29,Giro_DE1234,Rewe,-12.71,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
+2025-11-29,Giro_DE1234,Lidl,-3.89,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
+2025-11-29,Giro_DE1234,UCAR,-15.00,EUR,Lebensmittel,supermarkt," Fehlende Artikel ",,csv
+2025-11-29,Giro_DE1234,Netto,-25.30,EUR,Lebensmittel,supermarkt,"Pflege",,csv
+2025-11-29,Giro_DE1234,Lidl,-219.83,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 
 
 
