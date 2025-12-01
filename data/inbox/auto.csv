@@ -16,5 +16,5 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-11-02,Giro_DE1234,Westfallen ,-39.00,EUR,Auto,super,"Tanken",,csv
 2025-11-03,Giro_DE1234,Waschanlage ,-5.00,EUR,Auto,Waschen,"Waschen",,csv
 2025-11-27,Giro_DE1234,Westfallen ,-70.00,EUR,Auto,super,"Tanken",,csv
-2025-11-28,Giro_DE1234,Westfallen ,-40,72,EUR,Auto,super,"Tanken",,csv
-2025-11-29,Giro_DE1234,Westfallen ,-30,06,EUR,Auto,super,"Tanken",,csv
+2025-11-28,Giro_DE1234,Westfallen ,-40.72,EUR,Auto,super,"Tanken",,csv
+2025-11-29,Giro_DE1234,Westfallen ,-30.06,EUR,Auto,super,"Tanken",,csv
