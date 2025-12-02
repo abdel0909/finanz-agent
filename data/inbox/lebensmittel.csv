@@ -139,7 +139,8 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-11-29,Giro_DE1234,UCAR,-15.00,EUR,Lebensmittel,supermarkt," Fehlende Artikel ",,csv
 2025-11-29,Giro_DE1234,Netto,-25.30,EUR,Lebensmittel,supermarkt,"Pflege",,csv
 2025-11-29,Giro_DE1234,Lidl,-219.83,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
-
+2025-12-01,Giro_DE1234,kaffee,-4.40,EUR,Lebensmittel,Kaffeeteria,"Espresso",,csv
+2025-12-02,Giro_DE1234,kaffee,-4.40,EUR,Lebensmittel,Kaffeeteria,"Espresso",,csv
 
 
 
