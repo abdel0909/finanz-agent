@@ -1,10 +1,11 @@
 date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
-2025-10-13,Giro_DE1234,Tako ,-34.00,EUR,Tako,klamotten,"Hosen",,csv
-2025-10-13,Giro_DE1234,kik ,-34.00,EUR,kik,klamotten,"unterhosen",,csv
-2025-10-24,Giro_DE1234,outlet46 ,-34.00,EUR,Outlet46,klamotten,"unterhosen",,csv
+2025-10-13,Giro_DE1234,Tako ,-34.00,EUR,Shop,klamotten,"Hosen",,csv
+2025-10-13,Giro_DE1234,kik ,-34.00,EUR,Shop,klamotten,"unterhosen",,csv
+2025-10-24,Giro_DE1234,outlet46 ,-34.00,EUR,Shop,klamotten,"unterhosen",,csv
 
-2025-10-30,Giro_DE1234,Kik ,-18.00,EUR,kik,klamotten,"unterhosen",,csv
+2025-10-30,Giro_DE1234,Kik ,-18.00,EUR,Shop,klamotten,"unterhosen",,csv
 
-2025-10-31,Giro_DE1234,Outletcity ,-234.00,EUR,kik,Outletcity,"Winterklamotten",25.10.2025,csv
-
-2025-10-31,Giro_DE1234,outlet46 ,-116.80,EUR,kik,klamotten,"Winterklamotten",,csv
+2025-10-31,Giro_DE1234,Outletcity ,-234.00,EUR,Shop,Outletcity,"Winterklamotten",25.10.2025,csv
+2025-10-31,Giro_DE1234,MuM,-500.00,EUR,Shop,klamotten,"Winterklamotten",,csv
+2025-10-31,Giro_DE1234,outlet46 ,-116.80,EUR,Shop,klamotten,"Winterklamotten",,csv
+2025-11-25,Giro_DE1234,outlet46 ,-102.36,EUR,Shop,klamotten,"Winterklamotten",,csv
