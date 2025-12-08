@@ -147,11 +147,13 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-12-02,Giro_DE1234,kaffee,-7.40,EUR,Lebensmittel,Kaffeeteria,"Espresso",,csv
 2025-12-03,Giro_DE1234,kaffee,-5.80,EUR,Lebensmittel,Kaffeeteria,"Espresso",,csv
 2025-12-03,Giro_DE1234,pizzeria,-10.00,EUR,Lebensmittel,Kaffeeteria,"Pizza",,csv
-2025-12-04,Giro_DE1234,kaffee,-6.80,EUR,Lebensmittel,Kaffeeteria,"Espresso",,csv
-2025-12-05,Giro_DE1234,kaffee,-1.80,EUR,Lebensmittel,Kaffeeteria,"Espresso",,csv
+
+
 2025-12-03,Giro_DE1234,Lidl,-15.05,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
+2025-12-04,Giro_DE1234,kaffee,-6.80,EUR,Lebensmittel,Kaffeeteria,"Espresso",,csv
 2025-12-04,Giro_DE1234,Lidl,-7.30,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 2025-12-04,Giro_DE1234,Rewe,-6.00,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
+2025-12-05,Giro_DE1234,kaffee,-1.80,EUR,Lebensmittel,Kaffeeteria,"Espresso",,csv
 2025-12-05,Giro_DE1234,Rewe,-14,71,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 2025-12-05,Giro_DE1234,Lidl,-12.49,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 2025-12-06,Giro_DE1234,Lidl,-6.00,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
