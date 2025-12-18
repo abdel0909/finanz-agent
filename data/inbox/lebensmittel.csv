@@ -86,7 +86,7 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-10-09,Giro_DE1234,Lidl,-9.00,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 2025-10-10,Giro_DE1234,kaffee,-3.60,EUR,Lebensmittel,supermarkt,"Espresso",,csv
 2025-10-10,Giro_DE1234,kaffee,-26,EUR,Lebensmittel,supermarkt,"Mittagessen",,csv
-2025-10-11,Giro_DE1234,LIDL,-42.24,EUR,Lebensmittel,supermarkt,"Wocheneinkauf",,
+2025-10-11,Giro_DE1234,LIDL,-42.24,EUR,Lebensmittel,supermarkt,"Wocheneinkauf",,csv
 
 2025-10-13,Giro_DE1234,Lidl,-11.76,EUR,Lebensmittel,supermarkt,"Fehlende Produkte",,csv
 2025-10-14,Giro_DE1234,UCAR,-46.00,EUR,Lebensmittel,supermarkt,"Wocheneinkauf",,csv
@@ -108,3 +108,4 @@ date,account_id,payee,amount_eur,currency,category,tags,note,external_id,source
 2025-12-11,Giro_DE1234,kaffee,-1.80,EUR,Lebensmittel,supermarkt,"Espresso",,csv
 
 2025-12-17,Giro_DE1234,kaffee,-4.20,EUR,Lebensmittel,supermarkt,"Espresso",,csv
+2025-12-18,Giro_DE1234,kaffee,-1.80,EUR,Lebensmittel,supermarkt,"Espresso",,csv
